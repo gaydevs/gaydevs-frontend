@@ -110,6 +110,9 @@
 .footer { display: flex; flex-direction: column; gap: 28px; padding-block: 32px 40px; border-top: 1px solid var(--border); font-size: .8125rem; }
 .footer-brand { color: var(--text); font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
 .footer-author a { display: inline-flex; align-items: center; min-height: 44px; font-size: 1rem; text-decoration-color: var(--border); }
+.footer-links p { color: var(--text); font-family: var(--font-mono); font-size: .75rem; margin-bottom: 10px; }
+.footer-links ul { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.footer-links a { display: inline-flex; align-items: center; min-height: 32px; color: var(--text-muted); text-decoration-color: transparent; }
 
 @media (min-width: 480px) {
   .hero-content { padding-top: 64px; }
@@ -134,6 +137,8 @@
   .git-command { font-size: 1rem; }
   .final-actions { flex-direction: row; justify-content: center; }
   .footer { flex-direction: row; justify-content: space-between; align-items: center; }
+  .footer-links { max-width: 360px; }
+  .footer-links ul { justify-content: center; }
   .footer-author { text-align: right; }
 }
 @media (min-width: 1024px) {

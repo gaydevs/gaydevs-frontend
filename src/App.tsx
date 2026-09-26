@@ -8,7 +8,7 @@ import { Community } from './sections/Community'
 import { Lore } from './sections/Lore'
 import { FinalCta } from './sections/FinalCta'
 import { Footer } from './sections/Footer'
-import { about, accessibility, finalCta, footer, hero, publicLinks, sections, topics } from './data/site'
+import { about, accessibility, developerLinks, finalCta, footer, hero, publicLinks, sections, topics } from './data/site'
 import { events, formatGuide } from './data/events'
 import { timeline } from './data/timeline'
 import { photos } from './data/photos'
@@ -30,6 +30,6 @@ export default function App() {
       <Lore content={sections.lore} profiles={lore} mascot={images.cleito} mascotAlt={accessibility.cleito} />
       <FinalCta content={finalCta} links={publicLinks} />
     </main>
-    <Footer content={footer} />
+    <Footer content={footer} developerLinks={developerLinks} />
   </>
 }
