@@ -40,9 +40,18 @@ export const sections = {
 } satisfies Record<string, SectionCopy & { command?: string }>
 
 export const publicLinks: Link[] = [
-  { label: '@gay.devs no Instagram', href: 'https://www.instagram.com/gay.devs/' },
+  { label: '@gay.devs no Instagram', href: 'https://instagram.com/gay.devs/' },
   { label: 'gaydevs no GitHub', href: 'https://github.com/gaydevs' },
 ]
+
+export const developerLinks: Link[] = [
+  { label: 'repo', href: 'https://github.com/gaydevs/gaydevs-frontend' },
+  { label: 'team', href: 'https://github.com/orgs/gaydevs/teams/gdevs-team' },
+  { label: 'org', href: 'https://github.com/gaydevs' },
+  { label: 'cleito', href: 'https://github.com/gdev-cleito-bot' },
+  { label: 'luciano', href: 'https://github.com/luvittor' },
+]
+
 export const finalCta: SectionCopy = {
   title: 'acompanhe o gaydevs',
   intro: 'eventos, projetos, memes, tecnologia e o que os gdevs estão construindo juntos.',
@@ -50,7 +59,7 @@ export const finalCta: SectionCopy = {
 export const footer = {
   brand: 'gaydevs 🌈💻',
   location: 'São Paulo · desde 2026',
-  author: { label: '@luvittor', href: 'https://www.instagram.com/luvittor/' },
+  author: { label: '@luvittor', href: 'https://instagram.com/luvittor/' },
   role: 'scrum master dos gdevs',
 }
 export const accessibility = { skip: 'pular para o conteúdo', cleito: 'Cleito, mascote do gaydevs: robô com headphones e harness arco-íris, fazendo o sinal da paz.' }
