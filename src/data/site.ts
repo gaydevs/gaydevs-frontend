@@ -49,7 +49,6 @@ export const developerLinks: Link[] = [
   { label: 'team', href: 'https://github.com/orgs/gaydevs/teams/gdevs-team' },
   { label: 'org', href: 'https://github.com/gaydevs' },
   { label: 'cleito', href: 'https://github.com/gdev-cleito-bot' },
-  { label: 'luciano', href: 'https://github.com/luvittor' },
 ]
 
 export const finalCta: SectionCopy = {
@@ -58,8 +57,11 @@ export const finalCta: SectionCopy = {
 }
 export const footer = {
   brand: 'gaydevs 🌈💻',
-  location: 'São Paulo · desde 2026',
-  author: { label: '@luvittor', href: 'https://instagram.com/luvittor/' },
+  location: 'desde 2026',
+  authorLinks: [
+    { label: 'instagram', href: 'https://instagram.com/luvittor/' },
+    { label: 'github', href: 'https://github.com/luvittor' },
+  ],
   role: 'scrum master dos gdevs',
 }
 export const accessibility = { skip: 'pular para o conteúdo', cleito: 'Cleito, mascote do gaydevs: robô com headphones e harness arco-íris, fazendo o sinal da paz.' }

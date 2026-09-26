@@ -1,6 +1,6 @@
 import type { Link } from '../types/content'
 
-export function Footer({ content, developerLinks }: { content: { brand: string; location: string; author: Link; role: string }; developerLinks: Link[] }) {
+export function Footer({ content, developerLinks }: { content: { brand: string; location: string; authorLinks: Link[]; role: string }; developerLinks: Link[] }) {
   return <footer className="footer container">
     <div>
       <p className="footer-brand">{content.brand}</p>
@@ -12,9 +12,11 @@ export function Footer({ content, developerLinks }: { content: { brand: string; 
         {developerLinks.map((link) => <li key={link.href}><a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}<span aria-hidden="true"> ↗</span></a></li>)}
       </ul>
     </nav>
-    <div className="footer-author">
-      <a href={content.author.href} target="_blank" rel="noopener noreferrer">{content.author.label}<span aria-hidden="true"> ↗</span></a>
+    <nav className="footer-links footer-author" aria-label={content.role}>
       <p>{content.role}</p>
-    </div>
+      <ul>
+        {content.authorLinks.map((link) => <li key={link.href}><a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}<span aria-hidden="true"> ↗</span></a></li>)}
+      </ul>
+    </nav>
   </footer>
 }

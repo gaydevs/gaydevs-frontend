@@ -3,6 +3,8 @@ import { ActionLink } from '../components/ActionLink'
 
 export function Hero({ content, mobile, desktop }: { content: HeroContent; mobile: ImageAsset; desktop: ImageAsset }) {
   const srcSet = (image: ImageAsset) => image.sources.map((source) => `${source.src} ${source.width}w`).join(', ')
+  const brandIconSrc = `${import.meta.env.BASE_URL}brand-icon-512.png`
+
   return <section className="hero" aria-labelledby="hero-title">
     <picture className="hero-art">
       <source media="(min-width: 1024px)" type="image/webp" srcSet={srcSet(desktop)} sizes="100vw" width={desktop.width} height={desktop.height} />
@@ -12,7 +14,10 @@ export function Hero({ content, mobile, desktop }: { content: HeroContent; mobil
     </picture>
     <div className="hero-content container">
       <p className="hero-eyebrow">{content.eyebrow}</p>
-      <h1 id="hero-title">{content.title}<span className="hero-cursor" aria-hidden="true">_</span></h1>
+      <h1 id="hero-title">
+        <img className="hero-brand-icon" src={brandIconSrc} alt="" aria-hidden="true" />
+        <span className="hero-title-text">{content.title}<span className="hero-cursor" aria-hidden="true">_</span></span>
+      </h1>
       <p className="hero-subtitle">{content.subtitle}</p>
       <p className="hero-description">{content.description}</p>
       <p className="hero-tagline">{content.tagline}</p>
