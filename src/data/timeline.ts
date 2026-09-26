@@ -20,4 +20,5 @@ export const timeline: TimelineItem[] = [
   { date: '18.08.2026', type: 'feat', title: 'nasce /talks', description: 'primeiro tema: internacionalização de carreira' },
   { date: '20.08.2026', type: 'play', title: 'jogaydev #5 — MECCHA CHAMELEON' },
   { date: '05.09.2026', type: 'role', title: 'rolê na Black Mirror Experience', description: 'tecnologia, arte e gdevs no mundo real' },
+  { date: '25.09.2026', type: 'launch', title: 'lançamento do site dos gaydevs', description: 'marcando 4 meses da comunidade' },
 ]

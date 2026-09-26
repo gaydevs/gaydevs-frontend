@@ -22,7 +22,7 @@ export interface EventFormat {
   flow?: string[]
   items: EventItem[]
 }
-export type CommitType = 'init' | 'feat' | 'play' | 'meet' | 'role' | 'lore' | 'refactor' | 'build'
+export type CommitType = 'init' | 'feat' | 'play' | 'meet' | 'role' | 'lore' | 'refactor' | 'build' | 'launch'
 export interface TimelineItem { date: string; type: CommitType; title: string; description?: string }
 export interface CommunitySpace { path: string; commands: string[]; label: string; description: string }
 export interface LoreProfile { name: string; filename: string; attributes: Record<string, string>; paragraphs: Paragraph[] }
