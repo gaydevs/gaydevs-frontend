@@ -1,0 +1,50 @@
+name: "👥 Entrar no gdevs-team"
+description: "Peça acesso ao time de colaboradores do gaydevs."
+title: "[team] quero entrar no gdevs-team"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 👋 bora colaborar?
+
+        use esta issue para pedir entrada no `gdevs-team`.
+
+        depois da aprovação, vc poderá colaborar nos repos da org conforme as permissões do time.
+
+  - type: input
+    id: github
+    attributes:
+      label: "@ do GitHub"
+      description: "seu usuário no GitHub"
+      placeholder: "@username"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: community
+    attributes:
+      label: "confirmação"
+      options:
+        - label: "sou membro do gaydevs"
+          required: true
+
+  - type: checkboxes
+    id: interests
+    attributes:
+      label: "quero colaborar com"
+      description: "marque o que fizer sentido"
+      options:
+        - label: "código"
+        - label: "design"
+        - label: "conteúdo"
+        - label: "testes"
+        - label: "documentação"
+        - label: "ideias / outros"
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: "algo mais?"
+      description: "opcional"
+      placeholder: "se quiser, conta rapidamente como pretende colaborar"
