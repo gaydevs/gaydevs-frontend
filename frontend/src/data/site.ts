@@ -45,7 +45,7 @@ export const publicLinks: Link[] = [
 ]
 
 export const developerLinks: Link[] = [
-  { label: 'repo', href: 'https://github.com/gaydevs/gaydevs-frontend' },
+  { label: 'repo', href: 'https://github.com/gaydevs/gaydevs-platform' },
   { label: 'team', href: 'https://github.com/orgs/gaydevs/teams/gdevs-team' },
   { label: 'org', href: 'https://github.com/gaydevs' },
   { label: 'cleito', href: 'https://github.com/gdev-cleito-bot' },

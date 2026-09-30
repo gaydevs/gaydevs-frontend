@@ -1,6 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { background: var(--bg); scroll-padding-top: 24px; }
-body { margin: 0; color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+#root, main { min-height: 100vh; background: var(--bg); }
 ::selection { background: #20d7ff40; color: white; }
 h1, h2, h3, p, figure, pre, ul, ol, dl, dd { margin: 0; }
 h1, h2, h3 { line-height: 1.15; font-weight: 600; }
