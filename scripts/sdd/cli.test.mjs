@@ -56,6 +56,7 @@ require('node:module').syncBuiltinESMExports();
   return {
     dir,
     run: (...args) => spawnSync(process.execPath, ['--require', shim, path.join(dir, 'scripts/sdd/from-issue.mjs'), '27', ...args], { cwd: dir, encoding: 'utf8' }),
+    status: status => spawnSync(process.execPath, ['--require', shim, path.join(dir, 'scripts/sdd/status.mjs'), '27', status, '--human-approved'], { cwd: dir, encoding: 'utf8' }),
     calls: () => readFileSync(path.join(dir, 'calls.jsonl'), 'utf8').trim().split('\n').map(JSON.parse),
   };
 }
@@ -79,6 +80,24 @@ test('início cria apenas spec e ponteiro; comenta após preparar trabalho', () 
   assert.equal(pointer.feature_directory, 'specs/00027-login');
   assert.ok(f.calls().some(call => call.args.includes('POST')));
   assert.match(result.stderr, /pendente/);
+});
+test('Issue bloqueada pode ser consultada sem mutações', () => {
+  const f = fixture({ blocked: true });
+  const result = f.run();
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).context.blockedBy[0].state, 'open');
+  assert.ok(f.calls().every(call => call.command !== 'git' && !call.args.includes('POST')));
+  assert.equal(existsSync(path.join(f.dir, 'specs/00027-login')), false);
+  assert.equal(existsSync(path.join(f.dir, '.specify/feature.json')), false);
+});
+test('blocker impede Ready e In Progress mesmo com aprovação humana declarada', () => {
+  for (const status of ['Ready', 'In Progress']) {
+    const f = fixture({ blocked: true, project: true });
+    const result = f.status(status);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Blockers abertos/);
+    assert.ok(f.calls().every(call => !call.args.includes('POST')));
+  }
 });
 test('blocker e erro de API impedem qualquer mutação', () => {
   for (const options of [{ blocked: true }, { apiFailure: true }]) {

@@ -10,6 +10,8 @@ altamente recomendável. O processo também funciona executando os comandos manu
    nativo correspondente; ambos são exigidos pelos scripts.
 2. Consulte `node scripts/sdd/issue.mjs 27`: body, tipo, labels, responsáveis,
    comentários, Priority e relações blocked by / blocking vêm do GitHub atual.
+   `node scripts/sdd/from-issue.mjs 27` também permite consultar Issues bloqueadas,
+   sem alterar arquivos, branches ou Project. Blockers impedem início, não leitura.
 3. Inicie com `node scripts/sdd/from-issue.mjs 27 --start`. O checkout deve estar
    limpo. O comando verifica blockers, busca `origin/develop`, cria branch e
    rascunho da spec, atualiza Project e comenta a Issue. Não publica a branch.

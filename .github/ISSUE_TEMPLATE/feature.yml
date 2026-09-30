@@ -5,25 +5,25 @@ body:
   - type: textarea
     id: context
     attributes:
-      label: Contexto e problema
+      label: Problema ou oportunidade
       value: '<!-- gaydevs-sdd:Feature -->'
-      description: Descreva o problema e preserve o marcador acima para rastreabilidade.
+      description: Quem se beneficia e qual necessidade esta Feature atende? Preserve o marcador acima.
     validations:
       required: true
   - type: textarea
     id: outcome
     attributes:
-      label: Resultado esperado
-      description: Descreva comportamento e escopo. Para Bug, inclua reprodução, resultado atual e ambiente.
+      label: Capacidade proposta e escopo
+      description: Descreva o novo comportamento, os principais fluxos e o que fica fora do escopo.
     validations:
       required: true
   - type: textarea
     id: acceptance
     attributes:
       label: Critérios de aceite
-      description: Como um gdev verificará a conclusão?
+      description: Quais resultados observáveis demonstram que a nova capacidade atende à necessidade?
     validations:
       required: true
   - type: markdown
     attributes:
-      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Feature sempre exige spec; demais tipos podem ser triviais.'
+      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Feature sempre exige spec.'

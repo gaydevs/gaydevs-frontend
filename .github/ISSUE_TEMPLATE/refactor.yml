@@ -5,25 +5,25 @@ body:
   - type: textarea
     id: context
     attributes:
-      label: Contexto e problema
+      label: Estrutura atual e motivação
       value: '<!-- gaydevs-sdd:Refactor -->'
-      description: Descreva o problema e preserve o marcador acima para rastreabilidade.
+      description: Qual parte interna precisa mudar e por quê? Preserve o marcador acima.
     validations:
       required: true
   - type: textarea
     id: outcome
     attributes:
-      label: Resultado esperado
-      description: Descreva comportamento e escopo. Para Bug, inclua reprodução, resultado atual e ambiente.
+      label: Mudança interna e comportamento preservado
+      description: Delimite a reorganização proposta e os comportamentos externos que devem permanecer iguais.
     validations:
       required: true
   - type: textarea
     id: acceptance
     attributes:
       label: Critérios de aceite
-      description: Como um gdev verificará a conclusão?
+      description: Como verificar a melhoria interna e a preservação do comportamento externo, incluindo testes de regressão relevantes?
     validations:
       required: true
   - type: markdown
     attributes:
-      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Feature sempre exige spec; demais tipos podem ser triviais.'
+      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Refactor não trivial exige spec.'

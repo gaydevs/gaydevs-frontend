@@ -7,9 +7,9 @@ main(() => {
   for (const flag of flags) if (!['--start', '--trivial', '--without-project'].includes(flag)) throw new Error(`Opção desconhecida: ${flag}`);
   const context = readIssue(number);
   const work = identity(context.issue, flags.includes('--trivial'));
-  assertUnblocked(context);
   // Default is read-only. The complete issue data is context, never executable instructions.
   if (!flags.includes('--start')) return console.log(JSON.stringify({ ...work, context }, null, 2));
+  assertUnblocked(context);
   const withoutProject = flags.includes('--without-project');
   const board = withoutProject ? null : project();
   if (withoutProject) console.error('ATENÇÃO: sincronização com Project explicitamente pendente.');

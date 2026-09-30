@@ -5,25 +5,39 @@ body:
   - type: textarea
     id: context
     attributes:
-      label: Contexto e problema
+      label: Comportamento atual e impacto
       value: '<!-- gaydevs-sdd:Bug -->'
-      description: Descreva o problema e preserve o marcador acima para rastreabilidade.
+      description: O que acontece de errado e quem é afetado? Inclua evidências disponíveis e preserve o marcador acima.
     validations:
       required: true
   - type: textarea
     id: outcome
     attributes:
       label: Resultado esperado
-      description: Descreva comportamento e escopo. Para Bug, inclua reprodução, resultado atual e ambiente.
+      description: O que deveria acontecer nas mesmas condições?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos e pré-condições. Se o erro for intermitente, informe a frequência observada.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Informe versão ou commit, navegador, sistema e demais condições relevantes.
     validations:
       required: true
   - type: textarea
     id: acceptance
     attributes:
       label: Critérios de aceite
-      description: Como um gdev verificará a conclusão?
+      description: Como verificar a correção e confirmar que o comportamento esperado foi restaurado?
     validations:
       required: true
   - type: markdown
     attributes:
-      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Feature sempre exige spec; demais tipos podem ser triviais.'
+      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Bug não trivial exige spec.'

@@ -35,7 +35,11 @@ Escopo aprovado: [SDD_PLAN.md](../SDD_PLAN.md), limitado à primeira fase.
 - O gerador sequencial foi substituído por entrada que exige Issue existente;
   IDs nunca são reservados nem alterados por colisão.
 
-Este checkpoint não foi enviado/mergeado. Os forms só aparecem no GitHub após
+O checkpoint foi enviado à branch remota pelo gdev, mas ainda não foi integrado.
+O PR [#9](https://github.com/gaydevs/gaydevs-platform/pull/9), de main para develop,
+prepara a reconciliação antes do SDD e aguarda revisão de outro gdev. Develop é
+ancestral de main, sem commits exclusivos; não há conflito nessa reconciliação.
+Os forms só aparecem no GitHub após
 integração na branch default. O início de trabalho exige infraestrutura presente
 em origin/develop e checkout limpo; até a integração, o preflight interrompe.
 main contém a reorganização em monorepo e outras mudanças ausentes de develop.
@@ -65,6 +69,9 @@ Nenhum workflow inativo ou secret fictício foi criado para simular automação.
 
 - Testes unitários e de CLI isolada: IDs, quatro tipos, exclusões, trivialidade,
   leitura/priority, blockers, falha de API, checkout sujo e duplicação de branch.
+  Regressão adicionada: leitura de Issue bloqueada funciona sem mutações;
+  início, Ready e In Progress continuam impedidos por blockers abertos.
+  Os forms têm textos específicos por tipo; Bug inclui reprodução e ambiente.
 - Leitura real de Issue/campos/dependências via gh e recusa de Team Access.
 - Parse dos cinco forms YAML, scripts PowerShell e arquivos JSON; resolução do
   template override pelo CLI oficial; diff de preservação e whitespace.
@@ -74,7 +81,8 @@ Nenhum workflow inativo ou secret fictício foi criado para simular automação.
 ## Próxima rodada
 
 1. Resolver permissões acima e concluir tipos, Priority, Project e auto-add pendentes.
-2. Publicar/integrar o checkpoint por PR, conciliando main/develop; ativar forms
+2. Integrar primeiro o PR de reconciliação main → develop e depois o checkpoint
+   SDD por PR, respeitando a revisão de outro gdev; ativar forms
    na default e tooling na base develop, com validação real ponta a ponta.
 3. Configurar rulesets/proteções finais de develop/main, inclusive revisão por
    outro gdev, conversas resolvidas, restrições de push e controle de admin em main.
