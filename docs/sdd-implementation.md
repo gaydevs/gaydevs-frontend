@@ -187,7 +187,22 @@ passaram, e `git diff --check` não encontrou erros. O diff de frontend/backend
 e do workflow de deploy contra origin/main permaneceu vazio. A releitura GraphQL
 confirmou os mesmos dois IDs de proteção e zero permissões de bypass de PR.
 
-O checkpoint deve entrar por PR `techdebt/00008-sdd-foundation → develop`, com
+O [PR #12](https://github.com/gaydevs/gaydevs-platform/pull/12) foi publicado de
+`techdebt/00008-sdd-foundation` para develop, incluindo o commit `ad1f81f` da 2B.
+A releitura ao vivo confirmou `MERGEABLE`, `BLOCKED`, `REVIEW_REQUIRED` e nenhuma
+review: não há conflito de merge, mas o gate de aprovação está bloqueando o PR
+mesmo para a conta admin/autora. A API de erros de CODEOWNERS na branch do PR
+retornou `errors: []`. Isso valida o arquivo publicado, não sua ativação em main.
+
+O workflow de deploy em main e na branch do PR tem o mesmo blob
+`610f6678f38197b440e4e6875052710695864480`. Os workflows finais de Project seguem
+desativados; apenas Auto-add e Item added estão ativos. A comparação ao vivo de
+develop com main retornou zero arquivos diferentes antes da integração do #12;
+não foi criado um PR vazio de promoção para simular uma validação de release.
+As proteções de main foram relidas, mas o comportamento de uma promoção real e
+o início SDD em origin/develop continuam pendentes. A Rodada 2B não está concluída.
+
+O checkpoint deve entrar por esse PR, com
 `Refs #8`, review de outro gdev e **Create a merge commit**. Não recriar o PR #9,
 não fazer squash/rebase do checkpoint e não fechar a Issue #8 nessa integração.
 
