@@ -1,4 +1,8 @@
-# Implantação SDD — Rodada 2A
+# Implantação SDD — Rodadas 2A e 2B
+
+Estado da Rodada 2B: proteções clássicas complementadas em 2026-09-30;
+integração do checkpoint e ativação de CODEOWNERS em main pendentes dos gates
+humanos descritos ao final. O registro da Rodada 2A abaixo é histórico.
 
 Auditoria ao vivo: 2026-09-30, via gh 2.101.0 e interface do GitHub.
 Registro administrativo: [Issue #8](https://github.com/gaydevs/gaydevs-platform/issues/8).
@@ -116,20 +120,105 @@ não representam aprovação humana nem implantação das transições finais.
 A configuração de permissões permite o uso por gdevs com Write e token `project`;
 o teste real de escrita foi feito com a conta admin disponível.
 
-## Preparado para a Rodada 2B
+## Rodada 2B — integração e proteções
 
-1. Publicar/integrar o checkpoint SDD por PR para develop, com `Refs #8` e review
-   de outro gdev. O PR #9 de reconciliação já foi concluído: não recriá-lo.
-2. Disponibilizar forms na default e tooling na base develop com os gates
-   humanos. Até a integração do tooling, `from-issue --start` recusa novas
-   branches porque origin/develop ainda não contém a infraestrutura SDD.
-3. Configurar rulesets/proteções finais de develop/main. Não há rulesets na
-   consulta desta rodada; as proteções clássicas existentes não foram alteradas.
-4. Implantar o fluxo completo develop → main, entrega/fechamento de Issues,
-   Done após produção quando aplicável e verificação do deploy.
-5. Implantar automações finais PR → Project (Review, Ready for Release, Done),
-   respeitando revisão e aprovação/merge humanos.
+Escopo autorizado por `luvittor` em 2026-09-30 nesta sessão: complementar as
+proteções existentes, publicar/integrar o checkpoint por PR, validar a entrada
+SDD a partir de develop e preparar a promoção administrativa. Essa autorização
+não equivale a review de outro gdev, aprovação de PR ou autorização para ignorar
+os gates humanos. A Issue #8 permanece aberta como registro administrativo;
+seu texto original descreve a fase 1.
 
-Nenhuma proteção, release ou automação final de PR foi implantada nesta rodada.
-Frontend/backend/deploy e adaptações do Spec Kit não foram alterados.
-`SDD_PLAN.md` permanece no repo.
+Auditoria de entrada via gh: checkout limpo e publicado em `8a1927f`, quatro
+commits à frente de develop e nenhum atrás. `develop` em `198b176`, `main` em
+`da1f4f0`, default main, nenhum PR aberto e PR #9 já mergeado. Os 55 arquivos
+do checkpoint SDD ainda não estavam em develop. Nenhuma Feature foi criada.
+
+Foram complementadas as duas proteções clássicas existentes, preservando os
+IDs `BPR_kwDOUr_iks4E_l-4` (develop) e `BPR_kwDOUr_iks4E_hxw` (main). As alterações
+foram relidas pela API após cada gravação. Não foram criadas rulesets sobrepostas.
+
+| Controle | develop | main |
+| --- | --- | --- |
+| PR e aprovação obrigatória | 1 de outro gdev com Write | 1 e code owner habilitado; ativação depende de CODEOWNERS na base |
+| Invalidar aprovação quando o diff mudar | Sim | Sim |
+| Conversas resolvidas | Obrigatório | Obrigatório |
+| Aplicar também aos admins | Sim | Sim |
+| Bypass explícito de PR | Nenhum | Nenhum |
+| Atualização/merge | Gdevs com permissão, cumprindo o PR | Lista explícita `luvittor`; admins mantêm acesso nativo, cumprindo o PR |
+| Descartar reviews | Permissão padrão do GitHub | Lista explícita `luvittor` |
+| Force push / exclusão | Bloqueados | Bloqueados |
+| Histórico linear obrigatório | Não | Não |
+| Checks obrigatórios | Nenhum | Nenhum |
+
+PR e review obrigatórios restringem push direto também para admins. O GitHub
+impede autoaprovação nativamente. Não foi exigido o deploy como check de PR:
+ele executa depois do push e somente para os caminhos já configurados.
+O merge commit continua permitido para preservar o histórico.
+
+### Aprovação administrativa e limites
+
+`.github/CODEOWNERS` foi preparado com `* @luvittor`, único admin encontrado
+na lista de colaboradores. A exigência de code owner está ligada somente em
+main; develop continua permitindo review de outro gdev com Write.
+O GitHub usa o CODEOWNERS da **branch base**, portanto a aprovação administrativa
+não está tecnicamente garantida até esse arquivo chegar a main. O primeiro PR
+que o instala exige conferência humana da aprovação administrativa. A restrição
+de merge em main já está ativa. Reviews de outros gdevs continuam permitidos;
+após o bootstrap não substituem o code owner obrigatório.
+
+Outro gdev precisa abrir o PR `develop → main` para que `luvittor` possa aprová-lo.
+Não criar essa promoção pela conta do único admin e depois dispensar seu review.
+A branch de origem normalmente deve ser develop, mas não existe filtro de head
+branch nessa proteção clássica: essa conferência fica com o admin. Mudanças de
+admins exigem revisar CODEOWNERS e as listas de restrição. Administradores ainda
+podem editar as próprias configurações; não existe garantia contra essa ação.
+
+O repo é público e a organização usa Free: proteções clássicas estão disponíveis.
+A API de rulesets do repo retornou lista vazia, inclusive com herança; a API de
+rulesets da organização retornou 403 exigindo GitHub Team. Nenhum upgrade foi
+feito. A primeira falha de gh nesta sessão foi de rede do sandbox; a consulta
+com acesso de rede confirmou autenticação válida e os escopos necessários.
+
+### Integração e verificações pendentes de review humano
+
+Validação local da Rodada 2B: os 12 testes de `node --test scripts/sdd/*.test.mjs`
+passaram, e `git diff --check` não encontrou erros. O diff de frontend/backend
+e do workflow de deploy contra origin/main permaneceu vazio. A releitura GraphQL
+confirmou os mesmos dois IDs de proteção e zero permissões de bypass de PR.
+
+O checkpoint deve entrar por PR `techdebt/00008-sdd-foundation → develop`, com
+`Refs #8`, review de outro gdev e **Create a merge commit**. Não recriar o PR #9,
+não fazer squash/rebase do checkpoint e não fechar a Issue #8 nessa integração.
+
+Enquanto esse PR não for integrado, origin/develop não contém os scripts nem os
+templates SDD. Não declarar `from-issue --start` validado nessa base. Após o merge,
+executar em checkout isolado de origin/develop com uma fixture técnica Tech Debt,
+consultando primeiro Issue/dependências e respeitando o número atribuído pelo
+GitHub; verificar branch derivada de develop, rascunho único, contexto e Status.
+Não implementar uma Feature nem aprovar spec/plan durante essa verificação.
+
+Depois, outro gdev abre a promoção `develop → main`, com `Refs #8`; `luvittor`
+aprova e realiza o merge. Os forms só aparecem na interface de New Issue depois
+de chegarem à default main. Reler CODEOWNERS, proteções e estado do PR antes de
+considerar esse gate validado. Nenhuma aprovação/merge foi automatizada.
+
+### Deploy e separação da Rodada 2C
+
+O workflow `.github/workflows/deploy.yml` foi preservado. Na auditoria, o último
+[deploy](https://github.com/gaydevs/gaydevs-platform/actions/runs/36479654739)
+de main, commit `da1f4f0`, estava concluído com sucesso. O gatilho segue sendo
+push em main/master com alteração de `frontend/**` ou do próprio workflow,
+além de workflow_dispatch. Uma promoção só de infraestrutura SDD não dispara
+esse deploy automaticamente. Nenhum deploy manual foi disparado nesta rodada.
+
+A formulação anterior deste registro atribuía automações/release completos à
+2B. O recorte autorizado os reserva à **2C**: PR → Project (Review, Ready for
+Release, Done), fechamento de Issues após produção, automação completa de
+release, teste final com Feature real e remoção de SDD_PLAN.md. Esses itens não
+foram implementados. Frontend/backend e adaptações do Spec Kit foram preservados.
+
+Referências das capacidades nativas:
+[proteções](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches),
+[CODEOWNERS](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)
+e [reviews](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/reviewing-proposed-changes-in-a-pull-request).

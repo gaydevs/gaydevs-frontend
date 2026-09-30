@@ -28,5 +28,10 @@ PRs de trabalho apontam para `develop`, com `Refs #27` (não `Closes #27`).
 Solicite revisão de outro gdev. Consulte o [fluxo](docs/development-workflow.md)
 e o [estado desta implantação](docs/sdd-implementation.md) antes de iniciar.
 
+As proteções exigem PR, uma aprovação atualizada e conversas resolvidas também
+para admins. A promoção `develop → main` tem merge restrito aos admins; a aprovação
+administrativa via CODEOWNERS depende de esse arquivo já estar em `main`.
+Com um único admin, outro gdev abre a promoção para que ele possa aprová-la.
+
 Validação do tooling: `node --test scripts/sdd/*.test.mjs`.
 Comandos do frontend permanecem no [README](README.md).

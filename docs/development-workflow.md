@@ -61,15 +61,37 @@ precisa dos gates de spec/plan; sua classificação e início precisam estar aco
 
 Nesta rodada, `status.mjs` continua limitado a Backlog, Specifying, Ready e
 In Progress. Os sete Status estão disponíveis na API gh; as transições ligadas
-a PR/release e suas automações serão tratadas na Rodada 2B. Nenhuma movimentação
+a PR/release e suas automações serão tratadas na Rodada 2C. Nenhuma movimentação
 de card equivale a aprovação humana.
 
 Com Project indisponível, `--without-project` permite iniciar com aviso explícito
 de sincronização pendente. Não equivale a card criado. Depois sincronize via
 `status.mjs`; para um rascunho use `Specifying`.
 
-`main` representa produção. O processo previsto reserva promoção/merge ao admin
-e considera Done somente após entrega em produção e encerramento da Issue.
-As proteções finais e o fluxo completo de release ainda não foram implantados.
+Fluxo Git: `feat/fix/refactor/techdebt → develop → main → produção`.
+As proteções clássicas de `develop` e `main` exigem PR, uma aprovação atualizada
+e resolução das conversas, inclusive para admins. Novos diffs invalidam aprovações;
+force push e exclusão estão bloqueados. O GitHub impede aprovação pelo autor.
+Em `develop`, outro gdev com Write pode aprovar; não é exigida aprovação de admin.
+
+`main` representa produção. Sua restrição de atualização reserva o merge aos
+admins; a lista explícita atual contém `luvittor`. A proteção também exige code
+owner, mas essa exigência só passa a identificar o admin quando o arquivo
+`.github/CODEOWNERS` estiver na própria `main`. Consulte o registro da implantação
+para saber se esse bootstrap já foi integrado. Outros gdevs podem deixar reviews;
+depois do bootstrap, suas aprovações não substituem a aprovação do code owner.
+
+A promoção normalmente parte de `develop`; a proteção clássica não restringe
+a branch de origem do PR. O admin deve conferir origem, diff e aprovação antes
+do merge. Com um único admin/code owner (`luvittor`), outro gdev precisa abrir
+o PR de promoção para que ele possa aprová-lo. No primeiro PR que instalar
+CODEOWNERS em `main`, a aprovação administrativa ainda precisa ser conferida
+manualmente. Não usar bypass ou autoaprovação para completar o bootstrap.
+Ao alterar os admins, revisar CODEOWNERS e as listas de restrição de `main`.
+
+Para preservar o histórico do checkpoint e da promoção, usar **Create a merge
+commit**. Aprovação e merge continuam humanos; nenhuma automação foi criada.
+Done continua condicionado à entrega em produção e ao encerramento da Issue;
+as automações finais de release/Project ficam para a Rodada 2C.
 O deploy existente roda em pushes de main/master que alterem frontend ou o
 workflow de deploy, além de disparo manual; nem todo merge dispara deploy.
