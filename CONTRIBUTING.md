@@ -10,6 +10,10 @@ gh repo set-default gaydevs/gaydevs-platform
 gh auth refresh -s project
 ```
 
+O [Project](https://github.com/orgs/gaydevs/projects/1) é privado; `gdevs-team`
+tem Write. `admin:org` só é necessário para administrar tipos/campos da
+organização, não para a rotina de movimentação de cards.
+
 Crie uma Issue pelo form Feature, Bug, Refactor ou Tech Debt, na interface ou
 por agente seguindo [AGENTS.md](AGENTS.md). Defina Priority e dependências nativas.
 

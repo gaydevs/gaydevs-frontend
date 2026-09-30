@@ -1,91 +1,135 @@
-# Implantação SDD — fase 1
+# Implantação SDD — Rodada 2A
 
-Auditoria: 2026-09-30. Registro: [Issue #8](https://github.com/gaydevs/gaydevs-platform/issues/8).
-Escopo aprovado: [SDD_PLAN.md](../SDD_PLAN.md), limitado à primeira fase.
+Auditoria ao vivo: 2026-09-30, via gh 2.101.0 e interface do GitHub.
+Registro administrativo: [Issue #8](https://github.com/gaydevs/gaydevs-platform/issues/8).
+Plano: [SDD_PLAN.md](../SDD_PLAN.md). Rodada 2A autorizada pelo gdev nesta sessão;
+isso não constitui aprovação de spec, plan, PR ou release de produto.
 
-## Confirmado no GitHub via gh
+## Estado confirmado
 
-- Repo canônico: `gaydevs/gaydevs-platform`; o remoto antigo `gaydevs-frontend`
-  redireciona para o mesmo ID (`1388307090`). Conta auditada: `luvittor`, admin.
-- Branch default: main. main e develop já têm proteção clássica com uma aprovação;
-  admins não são obrigados a segui-la e resolução de conversas não é exigida.
-  Não há rulesets. Nenhuma proteção foi alterada nesta rodada.
-- Team Access existente preservado byte a byte; equipe `gdevs-team` existe.
-- Tipos nativos existentes: Task, Bug e Feature. Refactor e Tech Debt **não foram
-  criados**: API recusou por falta do escopo `admin:org`.
-- Priority nativo já existe (ID `47412460`), com High, Medium, Low e Urgent,
-  visível à organização. Não foi alterado. Scripts aceitam somente High/Medium/Low.
-- Consultas reais de campos e dependências funcionaram. Issues anteriores #3,
-  #6 e #7 estavam fechadas, sem valores nesses campos/dependências consultados.
-- A Issue administrativa #8 foi criada como Task para rastrear o bootstrap;
-  não é Feature de produto nem exemplo de entrada no fluxo SDD.
-- Token disponível: repo, read:org, workflow, gist. Faltam project e admin:org.
-  A leitura de Projects foi recusada; existência/configuração do board não pôde
-  ser verificada. Não se assume que o Project inexista.
+- Repo canônico: `gaydevs/gaydevs-platform`, ID `1388307090`. O remoto antigo
+  `gaydevs-frontend` redireciona para ele; o default do gh neste checkout é o canônico.
+- Conta `luvittor`: admin do repo e owner da organização. Escopos `project` e
+  `admin:org` obtidos e confirmados; nenhum token foi gravado no repo.
+- PR [#9](https://github.com/gaydevs/gaydevs-platform/pull/9) mergeado em develop.
+  Branch `techdebt/00008-sdd-foundation` sincronizada com develop no commit
+  `772ae49`, preservando os commits anteriores. O checkpoint SDD ainda não está
+  integrado em develop; main ainda contém apenas o form Team Access.
+- Issue #8 permanece aberta como Task administrativa de bootstrap, fora do
+  auto-add por tipo. Nenhuma Feature real, spec de produto ou branch nova foi criada.
 
-## Preparado no checkpoint local
+## Organização e Project
 
-- Quatro Issue Forms com tipos nativos e marcador de origem; preservado Team Access.
-  Refactor/Tech Debt dependem da criação dos tipos remotos para funcionar plenamente.
-- Spec Kit 1.0.13 oficial, integração generic, constitution, templates locais,
-  instruções de gates humanos e estrutura specs/. Não há spec de produto criada.
-- Scripts Node.js/gh para consulta, início, Priority, dependências e Status inicial.
-  Sem Project configurado, início exige exceção explícita `--without-project`.
-- Documentação de gdevs e AGENTS.md independentes de fornecedor de IA.
-- O gerador sequencial foi substituído por entrada que exige Issue existente;
-  IDs nunca são reservados nem alterados por colisão.
+[**gaydevs project — #1**](https://github.com/orgs/gaydevs/projects/1), privado,
+pertence à organização `gaydevs` e está vinculado ao repo. A organização não tinha
+Projects na consulta anterior à criação. View `SDD` em formato board.
 
-O checkpoint foi enviado à branch remota pelo gdev, mas ainda não foi integrado.
-O PR [#9](https://github.com/gaydevs/gaydevs-platform/pull/9), de main para develop,
-prepara a reconciliação antes do SDD e aguarda revisão de outro gdev. Develop é
-ancestral de main, sem commits exclusivos; não há conflito nessa reconciliação.
-Os forms só aparecem no GitHub após
-integração na branch default. O início de trabalho exige infraestrutura presente
-em origin/develop e checkout limpo; até a integração, o preflight interrompe.
-main contém a reorganização em monorepo e outras mudanças ausentes de develop.
-A branch administrativa `techdebt/00008-sdd-foundation` partiu do main atual para
-preservar essa estrutura; é a exceção de bootstrap, não o padrão de novas Issues.
+Acesso persistido e relido na interface:
 
-## Limitações e retomada
+- membros da organização: **Read** como base role deste Project;
+- `gdevs-team`: **Write**, configurado via gh;
+- owners/admins da organização: **Admin** por herança nativa; owner atual: `luvittor`.
 
-O Project, seus Status, visibilidade privada, permissões (organização Read,
-gdevs-team Write, admins Admin), exposição de Priority e auto-add **não estão
-confirmados/configurados por esta implantação**. `projectNumber` fica null em
-`.github/sdd.json` para impedir operação contra um board presumido.
+A API pública consultada não expõe base role nem a lista completa de permissões
+no objeto ProjectV2. A verificação desses papéis usa a página Manage access;
+privacidade, equipe vinculada e `viewerCanUpdate` também foram relidos via gh.
+Não houve teste autenticado com uma segunda conta de membro comum.
 
-Para desbloquear, o titular autentica gh com `gh auth refresh -s project,admin:org`.
-Depois consultar o estado atual, criar apenas os tipos faltantes, ajustar Priority
-ao plano preservando valores em uso e criar/configurar ou reutilizar o Project.
-Registrar seu número em `.github/sdd.json` e verificar com leitura via API.
+Tipos nativos habilitados: Feature, Bug, **Refactor** e **Tech Debt**. Os dois
+últimos foram criados nesta rodada. Task existente foi preservado; Team Access
+continua usando o form original sem tipo, preservado byte a byte.
 
-Auto-add nativo deve incluir somente os quatro tipos de desenvolvimento e excluir
-Team Access/outros/sem tipo. Como GitHub não oferece identidade imutável de form no
-body, os scripts também exigem o marcador correspondente. Validar o filtro antes
-de ativar; se a automação nativa não suportar a seleção, usar adição explícita via
-`status.mjs NUMERO Backlog`. Esse fallback só funciona após acesso ao Project.
-Nenhum workflow inativo ou secret fictício foi criado para simular automação.
+Priority é o **Issue Field da organização** `47412460`, visível aos membros,
+com **High → Medium → Low**. Os IDs dessas opções foram preservados. Urgent foi
+removido somente após listar todos os repos/Issues e reler seus valores: não
+havia uso dessa opção. O Project expõe o mesmo campo (`isIssueField: true`),
+sem criar uma prioridade independente.
 
-## Validação desta rodada
+Status, na ordem configurada:
 
-- Testes unitários e de CLI isolada: IDs, quatro tipos, exclusões, trivialidade,
-  leitura/priority, blockers, falha de API, checkout sujo e duplicação de branch.
-  Regressão adicionada: leitura de Issue bloqueada funciona sem mutações;
-  início, Ready e In Progress continuam impedidos por blockers abertos.
-  Os forms têm textos específicos por tipo; Bug inclui reprodução e ambiente.
-- Leitura real de Issue/campos/dependências via gh e recusa de Team Access.
-- Parse dos cinco forms YAML, scripts PowerShell e arquivos JSON; resolução do
-  template override pelo CLI oficial; diff de preservação e whitespace.
-- Operações de Project não puderam ser validadas ao vivo por falta de escopo.
-  Nenhuma Feature foi implementada; frontend/backend/deploy não foram alterados.
+`Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done`
 
-## Próxima rodada
+Número, IDs do Project, Status/opções, Priority/opções, tipos, equipe e workflows
+estão em [`.github/sdd.json`](../.github/sdd.json). São um registro auditado;
+configuração local não substitui releitura do GitHub. Os scripts continuam
+resolvendo o Project/Status pelo número e nomes no estado remoto.
 
-1. Resolver permissões acima e concluir tipos, Priority, Project e auto-add pendentes.
-2. Integrar primeiro o PR de reconciliação main → develop e depois o checkpoint
-   SDD por PR, respeitando a revisão de outro gdev; ativar forms
-   na default e tooling na base develop, com validação real ponta a ponta.
-3. Configurar rulesets/proteções finais de develop/main, inclusive revisão por
-   outro gdev, conversas resolvidas, restrições de push e controle de admin em main.
-4. Implantar fluxo completo de release develop → main, identificação das Issues
-   entregues, fechamento/Done apenas após produção e verificação do deploy.
-5. Implantar automações finais PR → Project (Review, Ready for Release, Done).
+## Auto-add e fallback
+
+Workflow nativo **Auto-add to project** habilitado para `gaydevs-platform`:
+
+```text
+is:issue type:Feature,Bug,Refactor,"Tech Debt"
+```
+
+Filtro salvo e relido na interface; habilitação relida via gh. A inclusão foi
+observada nos quatro tipos usando fixtures técnicas. Task e sem tipo ficaram
+fora após atualizações e nova leitura; Team Access atual é sem tipo. `is:issue`
+exclui PRs. Outros tipos não pertencem à lista positiva.
+
+Somente dois workflows estão ativos:
+
+- Auto-add to project: filtro acima;
+- Item added to project: define **Backlog**.
+
+Foram desativados os defaults Auto-add sub-issues, Auto-close issue, Item closed,
+Pull request linked to issue e Pull request merged, para não introduzir entradas
+fora do filtro ou antecipar automações finais de PR/release.
+
+A inclusão é assíncrona: a fixture Feature demorou além da primeira janela de
+verificação, mas apareceu na releitura. Para uma Issue nova elegível, se o card
+não aparecer ou o workflow estiver indisponível, o fallback explícito é:
+
+```sh
+node scripts/sdd/status.mjs NUMERO Backlog
+```
+
+Consultar primeiro o card para não resetar um trabalho em andamento. O script
+exige tipo nativo e marcador correspondente do form, e reutiliza o mesmo item
+quando ele já existe. O filtro nativo seleciona por tipo; não autentica a origem
+do form nem exige o marcador. Auto-add também não remove cards já adicionados
+quando o tipo muda. Esses casos precisam de revisão explícita. A regra atual
+cobre somente este repo; futuros repos exigem configurar e validar sua entrada.
+
+## Validação ao vivo e local
+
+Fixtures [#10](https://github.com/gaydevs/gaydevs-platform/issues/10) e
+[#11](https://github.com/gaydevs/gaydevs-platform/issues/11) usadas exclusivamente
+para QA da configuração, restauradas a Tech Debt, encerradas e com cards Done
+arquivados ao final. Não são demandas de produto.
+
+- Auto-add dos quatro tipos; exclusão de Task e sem tipo; Team Access #7 fora
+  do board e recusado pelo script; nenhuma Issue de produto criada.
+- Item contém o node ID da própria Issue; adição repetida não duplicou o card.
+- High, Low e Medium escritos por `priority.mjs` e relidos na Issue e no card.
+- Status escritos e relidos via gh; Backlog/Specifying também exercitados pelo
+  CLI `status.mjs`. Done validado após encerrar a fixture.
+- `dependency.mjs` adicionou #10 blocked by #11; leitura confirmou também
+  #11 blocking #10. Ready e In Progress foram recusados com blocker aberto.
+  Relação removida pelo script e ausência relida nos dois sentidos.
+- `node --test scripts/sdd/*.test.mjs`: 12 testes passaram.
+- Configurações remotas relidas após alterações; JSON e diff local conferidos.
+
+`status.mjs` preserva o limite desta implantação: Backlog, Specifying, Ready e
+In Progress. Os sete Status são manipuláveis pela API gh; os exercícios de QA
+não representam aprovação humana nem implantação das transições finais.
+A configuração de permissões permite o uso por gdevs com Write e token `project`;
+o teste real de escrita foi feito com a conta admin disponível.
+
+## Preparado para a Rodada 2B
+
+1. Publicar/integrar o checkpoint SDD por PR para develop, com `Refs #8` e review
+   de outro gdev. O PR #9 de reconciliação já foi concluído: não recriá-lo.
+2. Disponibilizar forms na default e tooling na base develop com os gates
+   humanos. Até a integração do tooling, `from-issue --start` recusa novas
+   branches porque origin/develop ainda não contém a infraestrutura SDD.
+3. Configurar rulesets/proteções finais de develop/main. Não há rulesets na
+   consulta desta rodada; as proteções clássicas existentes não foram alteradas.
+4. Implantar o fluxo completo develop → main, entrega/fechamento de Issues,
+   Done após produção quando aplicável e verificação do deploy.
+5. Implantar automações finais PR → Project (Review, Ready for Release, Done),
+   respeitando revisão e aprovação/merge humanos.
+
+Nenhuma proteção, release ou automação final de PR foi implantada nesta rodada.
+Frontend/backend/deploy e adaptações do Spec Kit não foram alterados.
+`SDD_PLAN.md` permanece no repo.

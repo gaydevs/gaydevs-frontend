@@ -27,11 +27,24 @@ altamente recomendável. O processo também funciona executando os comandos manu
    `Spec: 00027` e `Refs #27`. Revisão de outro gdev é obrigatória no processo.
    Não encerre a Issue na integração em develop.
 
-O board previsto é **gaydevs project**, privado da organização. Status:
+O board é [gaydevs project](https://github.com/orgs/gaydevs/projects/1), privado
+da organização. Membros têm Read, `gdevs-team` Write e owners Admin. Status:
 Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done.
 Confira no [registro da implantação](sdd-implementation.md) quais recursos estão
 ativos. Na rotina, agente/scripts devem atualizar o board via gh; arrastar cards
 é uma exceção. Não há automação final de PR/release nesta fase.
+
+O auto-add nativo inclui Issues dos tipos Feature, Bug, Refactor e Tech Debt
+do `gaydevs-platform`, com Status inicial Backlog. Outros tipos, Team Access
+(sem tipo no form atual), Issues sem tipo e PRs ficam fora. A inclusão é
+assíncrona; confira o card antes de presumir sincronização. Para uma Issue nova
+elegível que ainda não entrou, use `node scripts/sdd/status.mjs NUMERO Backlog`.
+Esse fallback via gh exige também o marcador do form. Não use Backlog para
+reiniciar o Status de trabalho já em andamento. O auto-add não remove cards
+existentes quando o tipo muda; revise esses casos explicitamente.
+
+Priority é o campo nativo da organização, compartilhado pela Issue e pelo
+Project, com High, Medium e Low. Não crie uma segunda prioridade no board.
 
 ```sh
 node scripts/sdd/priority.mjs 27 Medium
@@ -45,6 +58,11 @@ node scripts/sdd/status.mjs 27 "In Progress" --human-approved
 um sistema de identidade. Blockers abertos impedem início/Ready/In Progress.
 O agente não deve usar a opção sem evidência humana. Um trabalho trivial não
 precisa dos gates de spec/plan; sua classificação e início precisam estar acordados.
+
+Nesta rodada, `status.mjs` continua limitado a Backlog, Specifying, Ready e
+In Progress. Os sete Status estão disponíveis na API gh; as transições ligadas
+a PR/release e suas automações serão tratadas na Rodada 2B. Nenhuma movimentação
+de card equivale a aprovação humana.
 
 Com Project indisponível, `--without-project` permite iniciar com aviso explícito
 de sincronização pendente. Não equivale a card criado. Depois sincronize via
