@@ -1,0 +1,10 @@
+{
+  "repository": "gaydevs/gaydevs-platform",
+  "organization": "gaydevs",
+  "baseBranch": "develop",
+  "projectTitle": "gaydevs project",
+  "projectNumber": null,
+  "priorityFieldId": 47412460,
+  "types": {"Feature": "feat", "Bug": "fix", "Refactor": "refactor", "Tech Debt": "techdebt"},
+  "statuses": ["Backlog", "Specifying", "Ready", "In Progress", "Review", "Ready for Release", "Done"]
+}

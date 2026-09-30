@@ -1,5 +1,8 @@
 # gaydevs-platform
 
+Plataforma da comunidade gaydevs. Para começar, leia [CONTRIBUTING.md](CONTRIBUTING.md)
+e o [fluxo de trabalho](docs/development-workflow.md).
+
 ## Estrutura
 
 ```text
