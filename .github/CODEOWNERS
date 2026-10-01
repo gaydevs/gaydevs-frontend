@@ -1,5 +1,6 @@
-# Admin atual do repositório. Atualize este arquivo quando os admins mudarem.
+# Team administrativo Visible com acesso Admin ao repositório.
+# A composição dos admins é gerenciada no team gdevs-admins.
 # A aprovação de code owner é obrigatória apenas na proteção de main.
 # O GitHub usa o CODEOWNERS da branch base do PR; a regra fica efetiva em main
 # depois da integração deste arquivo por PR com aprovação administrativa humana.
-* @luvittor
+* @gaydevs/gdevs-admins

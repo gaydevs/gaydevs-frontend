@@ -1,6 +1,7 @@
 # Implantação SDD — Rodadas 2A e 2B
 
-Estado da Rodada 2B: proteções clássicas complementadas em 2026-09-30;
+Estado da Rodada 2B: proteções clássicas complementadas em 2026-09-30 e governança
+administrativa transferida para `gdevs-admins` em 2026-10-01;
 integração do checkpoint e ativação de CODEOWNERS em main pendentes dos gates
 humanos descritos ao final. O registro da Rodada 2A abaixo é histórico.
 
@@ -145,8 +146,8 @@ foram relidas pela API após cada gravação. Não foram criadas rulesets sobrep
 | Conversas resolvidas | Obrigatório | Obrigatório |
 | Aplicar também aos admins | Sim | Sim |
 | Bypass explícito de PR | Nenhum | Nenhum |
-| Atualização/merge | Gdevs com permissão, cumprindo o PR | Lista explícita `luvittor`; admins mantêm acesso nativo, cumprindo o PR |
-| Descartar reviews | Permissão padrão do GitHub | Lista explícita `luvittor` |
+| Atualização/merge | Gdevs com permissão, cumprindo o PR | Team `gdevs-admins`; admins mantêm acesso nativo, cumprindo o PR |
+| Descartar reviews | Permissão padrão do GitHub | Team `gdevs-admins` |
 | Force push / exclusão | Bloqueados | Bloqueados |
 | Histórico linear obrigatório | Não | Não |
 | Checks obrigatórios | Nenhum | Nenhum |
@@ -158,8 +159,8 @@ O merge commit continua permitido para preservar o histórico.
 
 ### Aprovação administrativa e limites
 
-`.github/CODEOWNERS` foi preparado com `* @luvittor`, único admin encontrado
-na lista de colaboradores. A exigência de code owner está ligada somente em
+`.github/CODEOWNERS` usa `* @gaydevs/gdevs-admins`. O team Visible tem acesso
+Admin explícito ao repo. A exigência de code owner está ligada somente em
 main; develop continua permitindo review de outro gdev com Write.
 O GitHub usa o CODEOWNERS da **branch base**, portanto a aprovação administrativa
 não está tecnicamente garantida até esse arquivo chegar a main. O primeiro PR
@@ -167,11 +168,15 @@ que o instala exige conferência humana da aprovação administrativa. A restri�
 de merge em main já está ativa. Reviews de outros gdevs continuam permitidos;
 após o bootstrap não substituem o code owner obrigatório.
 
-Outro gdev precisa abrir o PR `develop → main` para que `luvittor` possa aprová-lo.
-Não criar essa promoção pela conta do único admin e depois dispensar seu review.
+Enquanto houver apenas um membro em `gdevs-admins`, outro gdev precisa abrir o
+PR `develop → main` para que esse membro possa aprová-lo. Não criar a promoção
+pela conta do único code owner e depois dispensar seu review.
 A branch de origem normalmente deve ser develop, mas não existe filtro de head
-branch nessa proteção clássica: essa conferência fica com o admin. Mudanças de
-admins exigem revisar CODEOWNERS e as listas de restrição. Administradores ainda
+branch nessa proteção clássica: essa conferência fica com o admin. A composição
+administrativa passa a ser gerenciada no team, sem editar CODEOWNERS ou as listas
+por mudança de membro. O team deve permanecer Visible e com Admin no repo.
+Admins externos ao team mantêm acesso nativo de atualização, mas não substituem
+a aprovação de um membro do team quando CODEOWNERS estiver na base. Administradores ainda
 podem editar as próprias configurações; não existe garantia contra essa ação.
 
 O repo é público e a organização usa Free: proteções clássicas estão disponíveis.
@@ -213,10 +218,33 @@ consultando primeiro Issue/dependências e respeitando o número atribuído pelo
 GitHub; verificar branch derivada de develop, rascunho único, contexto e Status.
 Não implementar uma Feature nem aprovar spec/plan durante essa verificação.
 
-Depois, outro gdev abre a promoção `develop → main`, com `Refs #8`; `luvittor`
-aprova e realiza o merge. Os forms só aparecem na interface de New Issue depois
-de chegarem à default main. Reler CODEOWNERS, proteções e estado do PR antes de
+Depois, outro gdev abre a promoção `develop → main`, com `Refs #8`; um membro
+de `gdevs-admins` aprova e o merge é realizado por admin. Os forms só aparecem na
+interface de New Issue depois de chegarem à default main. Reler CODEOWNERS,
+proteções e estado do PR antes de
 considerar esse gate validado. Nenhuma aprovação/merge foi automatizada.
+
+### Governança administrativa — 2026-10-01
+
+Correção autorizada por `luvittor` nesta sessão, sem merge do PR #12. A auditoria
+encontrou somente `gdevs-team` (Write); não existia team administrativo equivalente.
+Foi criado [gdevs-admins](https://github.com/orgs/gaydevs/teams/gdevs-admins), ID
+`19830724`, node ID `T_kwDOE-iGEc4BLpfE`, Visible (`privacy: closed` na API).
+`luvittor` é o membro inicial ativo, com papel maintainer atribuído na criação.
+O team recebeu Admin explícito no repo; `gdevs-team` manteve Write.
+
+As listas de atualização e descarte de reviews de main passaram de `luvittor`
+para `gdevs-admins`, com listas de usuários vazias. Os demais gates foram
+preservados. A referência pessoal anterior em CODEOWNERS foi substituída pelo
+team no mesmo PR #12. Os registros de auditoria da conta acima são históricos.
+Esta mudança concede Admin no repositório, não o papel de owner da organização.
+
+Validação ao vivo via REST/GraphQL: team Visible, membership ativa, Admin no repo
+e Write de `gdevs-team` confirmados. Comparação dos snapshots antes/depois mostrou
+develop idêntica e main alterada somente nas listas de usuários/teams de atualização
+e descarte de reviews; todos os outros gates e zero bypass foram preservados.
+Os 12 testes SDD passaram e `git diff --check` passou. Frontend, backend, deploy,
+`.specify/feature.json` e `.specify/context` não foram alterados nesta correção.
 
 ### Deploy e separação da Rodada 2C
 
