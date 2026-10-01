@@ -21,7 +21,7 @@ Adaptações locais: constitution, templates em `templates/overrides/`, entrada
 `speckit.specify`, bloqueio do gerador sequencial e gates nas instruções.
 Não instalar extensão git para gerar IDs; o wrapper Issue → spec cuida disso.
 Uma atualização/reinicialização pode sobrescrever adaptações: revise o diff,
-reaplique-as e execute `node --test scripts/sdd/*.test.mjs` antes de adotar.
+reaplique-as e execute `node scripts/sdd/test.mjs` antes de adotar.
 Não executar `taskstoissues`: tasks ficam em `tasks.md` nesta fase.
 
 Fonte: https://github.com/github/spec-kit/tree/v1.0.13 (licença MIT).
@@ -73,7 +73,7 @@ instalá-las exige revisar suas premissas sobre contexto e persistência.
 ponteiro ou snapshot. Consulte `issue.mjs NUMERO` para reler Issue, comentários,
 Priority e dependências quando precisar de contexto remoto atual.
 
-Validação: `node --test scripts/sdd/*.test.mjs` inclui Git e PowerShell 7 reais,
+Validação: `node scripts/sdd/test.mjs` inclui Git e PowerShell 7 reais,
 branches, worktrees temporários e API simulada para from-issue. Não instala
 Pester; usa `pwsh` (ou `PWSH_BIN`), com fallback padrão do PowerShell 7 no Windows.
 Os testes não criam Features reais nem fazem chamadas de escrita ao GitHub.

@@ -64,6 +64,14 @@ for (const [type, prefix] of [['Feature', 'feat'], ['Bug', 'fix'], ['Refactor', 
   });
 }
 
+test('from-issue: Issue title preserves dollar-sign replacement sequences literally', t => {
+  const s = sandbox(t);
+  const title = "Cobrar $' e $$ e $& literalmente";
+  s.change(v => { v.issues[27].title = title; });
+  const work = JSON.parse(ok(start(s)));
+  const spec = readFileSync(path.join(s.repo, work.directory, 'spec.md'), 'utf8');
+  assert.ok(spec.includes(title), 'Issue title was altered during template substitution');
+});
 test('from-issue: IDs above 99999 are not truncated', t => {
   const s = sandbox(t); s.change(v => { v.issues[123456] = issue(123456); });
   const work = JSON.parse(ok(start(s, 123456)));
