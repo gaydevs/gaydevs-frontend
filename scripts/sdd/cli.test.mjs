@@ -149,12 +149,19 @@ test('Project status: all current statuses use exact field/item/option; repeated
   assert.equal(Object.keys(s.state().items).length, 1);
 });
 
-test('Project status: Rejected and Canceled close the Issue as not planned', t => {
+test('Project status: valid Rejected and Canceled transitions close the Issue as not planned', t => {
   const s = sandbox(t);
-  for (const [status, option] of [['Rejected', 'S_7'], ['Canceled', 'S_8']]) {
+  for (const [current, status, option] of [
+    ['Backlog', 'Rejected', 'S_7'],
+    ['Specifying', 'Rejected', 'S_7'],
+    ['Ready', 'Canceled', 'S_8'],
+    ['In Progress', 'Canceled', 'S_8'],
+    ['Review', 'Canceled', 'S_8'],
+    ['Ready for Release', 'Canceled', 'S_8'],
+  ]) {
     s.change(v => {
       v.issues[27] = issue(27, 'Feature');
-      v.items = {};
+      v.items = { I_27: { id: 'ITEM_I_27', status: current } };
     });
     s.clearCalls(); ok(s.cli('status', [27, status]));
     assert.equal(s.state().items.I_27.status, status);
@@ -166,9 +173,33 @@ test('Project status: Rejected and Canceled close the Issue as not planned', t =
     assert.deepEqual(calls[1].body.variables, { project: 'P_1', item: 'ITEM_I_27', field: 'STATUS', option });
     assert.deepEqual(calls[2].body, { state: 'closed', state_reason: 'not_planned' });
   }
+});
+
+test('Project status: invalid Rejected and Canceled transitions fail before mutation', t => {
+  const s = sandbox(t);
+  for (const [current, status] of [
+    ['Ready', 'Rejected'],
+    ['In Progress', 'Rejected'],
+    ['Review', 'Rejected'],
+    ['Ready for Release', 'Rejected'],
+    ['Done', 'Rejected'],
+    ['Rejected', 'Rejected'],
+    ['Canceled', 'Rejected'],
+    ['Backlog', 'Canceled'],
+    ['Specifying', 'Canceled'],
+    ['Done', 'Canceled'],
+    ['Rejected', 'Canceled'],
+    ['Canceled', 'Canceled'],
+  ]) {
+    s.change(v => {
+      v.issues[27] = issue(27, 'Feature');
+      v.items = { I_27: { id: 'ITEM_I_27', status: current } };
+    });
+    s.clearCalls(); fail(s.cli('status', [27, status]), /Transição inválida/); noWrites(s);
+  }
   s.change(v => {
     v.issues[27] = issue(27, 'Feature', { state: 'closed', state_reason: 'completed' });
-    v.items = {};
+    v.items = { I_27: { id: 'ITEM_I_27', status: 'Backlog' } };
   });
   s.clearCalls(); fail(s.cli('status', [27, 'Rejected']), /motivo diferente/); noWrites(s);
 });

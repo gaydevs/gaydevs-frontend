@@ -74,6 +74,13 @@ export function setStatus(issue, status, board = project()) {
   const added = graphql(`mutation($project:ID!,$issue:ID!){addProjectV2ItemById(input:{projectId:$project,contentId:$issue}){item{id}}}`, { project: board.id, issue: issue.node_id });
   graphql(`mutation($project:ID!,$item:ID!,$field:ID!,$option:String!){updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{singleSelectOptionId:$option}}){projectV2Item{id}}}`, { project: board.id, item: added.addProjectV2ItemById.item.id, field: field.id, option: option.id });
 }
+export function currentStatus(issue, board = project()) {
+  const data = graphql(`query($issue:ID!){node(id:$issue){... on Issue{projectItems(first:100){nodes{id project{id} fieldValues(first:100){nodes{... on ProjectV2ItemFieldSingleSelectValue{name field{... on ProjectV2SingleSelectField{id name}}}}}}}}}}`, { issue: issue.node_id });
+  const item = data.node?.projectItems.nodes.find(item => item.project.id === board.id);
+  const value = item?.fieldValues.nodes.find(value => value.field?.name === 'Status');
+  if (!value?.name) throw new Error('Status atual não encontrado no Project.');
+  return value.name;
+}
 export function closeNotPlanned(issue) {
   if (issue.state === 'closed' && issue.state_reason === 'not_planned') return issue;
   return api(`repos/${config.repository}/issues/${issueNumber(issue.number)}`, {

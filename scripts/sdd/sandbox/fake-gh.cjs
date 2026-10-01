@@ -32,6 +32,16 @@ function serve() {
   if (endpoint === 'graphql') {
     assert.equal(method, 'POST');
     const { query, variables: v } = body;
+    if (query.includes('projectItems')) {
+      assert.deepEqual(v, { issue: v.issue });
+      const issue = Object.values(state.issues).find(i => i.node_id === v.issue);
+      assert.ok(issue, 'unknown Issue node');
+      const item = state.items[v.issue];
+      const nodes = item ? [{ id: item.id, project: { id: state.project.id }, fieldValues: { nodes: [
+        { name: item.status, field: { id: 'STATUS', name: 'Status' } },
+      ] } }] : [];
+      return output({ data: { node: { projectItems: { nodes } } } });
+    }
     if (query.startsWith('query(')) {
       assert.deepEqual(v, { org: 'gaydevs', number: 1 });
       return output({ data: { organization: { projectV2: state.project } } });
