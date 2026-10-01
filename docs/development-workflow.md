@@ -49,9 +49,10 @@ HEAD ou sem Git, o override de diretório é obrigatório. Os helpers não conce
 aprovação humana; preservam os gates de spec e plan.
 
 O board é [gaydevs project](https://github.com/orgs/gaydevs/projects/1), privado
-da organização. Membros têm Read, `gdevs-team` Write e owners Admin. Status:
-Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done
-→ Rejected → Canceled.
+da organização. Membros têm Read, `gdevs-team` Write e owners Admin. Fluxo normal:
+Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done.
+Encerramentos alternativos: Backlog/Specifying → Rejected; Ready/In Progress/
+Review/Ready for Release → Canceled.
 Confira no [registro da implantação](sdd-implementation.md) quais recursos estão
 ativos. Na rotina, agente/scripts devem atualizar o board via gh; arrastar cards
 é uma exceção. Não há automação final de PR/release nesta fase.
