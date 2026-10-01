@@ -54,7 +54,7 @@ Não interpretar falha de rede como credencial inválida sem verificar a causa.
 
 ## Validação
 
-`node --test scripts/sdd/*.test.mjs` executa a [sandbox SDD](docs/sdd-sandbox.md),
+`node scripts/sdd/test.mjs` executa a [sandbox SDD](docs/sdd-sandbox.md),
 com Git/PowerShell reais, GitHub simulado obrigatório e bloqueio de rede.
 Não execute testes contra recursos reais nem remova os guards para fazê-los passar.
 Helpers Spec Kit usam PowerShell 7. Não reinstalar/atualizar sem preservar as

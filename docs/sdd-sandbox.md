@@ -3,7 +3,7 @@
 Na raiz do checkout:
 
 ```sh
-node --test scripts/sdd/*.test.mjs
+node scripts/sdd/test.mjs
 ```
 
 Use Node.js, Git e PowerShell 7 instalados. A execução foi validada no Windows
