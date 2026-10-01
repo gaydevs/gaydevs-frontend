@@ -36,4 +36,6 @@ Com um único membro no team administrativo, outro gdev abre a promoção para
 que esse membro possa aprová-la.
 
 Validação do tooling: `node --test scripts/sdd/*.test.mjs`.
+A [suíte sandbox](docs/sdd-sandbox.md) usa Git/PowerShell reais e GitHub simulado,
+sem credenciais ou rede, com fixtures descartáveis e limpeza após falhas.
 Comandos do frontend permanecem no [README](README.md).

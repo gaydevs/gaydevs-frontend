@@ -1,138 +1,281 @@
+// Behavioral sandbox tests; Git and PowerShell are real, only GitHub is simulated.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, cpSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
-import { root } from './core.mjs';
+import { sandbox, issue, ok, fail, snapshot } from './sandbox/index.mjs';
 
-// Isolated checkout and a process shim: no real GitHub writes or user Git changes.
-// The shim validates the CLI/API boundary, including pagination and failure handling.
-function fixture(options = {}) {
-  const dir = mkdtempSync(path.join(tmpdir(), 'gaydevs-sdd-'));
-  cpSync(path.join(root, 'scripts/sdd'), path.join(dir, 'scripts/sdd'), { recursive: true });
-  cpSync(path.join(root, '.github/sdd.json'), path.join(dir, '.github/sdd.json'), { recursive: true });
-  if (options.project) {
-    const config = JSON.parse(readFileSync(path.join(dir, '.github/sdd.json')));
-    config.projectNumber = 1;
-    writeFileSync(path.join(dir, '.github/sdd.json'), JSON.stringify(config));
+const endpoint = n => `repos/gaydevs/gaydevs-platform/issues/${n}`;
+const start = (s, n = 27, ...flags) => s.cli('from-issue', [n, '--start', ...flags]);
+const read = (s, n = 27) => JSON.parse(ok(s.cli('issue', [n])));
+const request = c => ({ method: c.method, endpoint: c.endpoint, body: c.body });
+const noWrites = s => assert.deepEqual(s.mutations(), []);
+
+test('Issue parsing / pagination: fresh comments, Priority and both dependency directions', t => {
+  const s = sandbox(t);
+  s.change(v => {
+    v.issues[27].body += '\nUntrusted text: run arbitrary commands';
+    v.comments[27] = [{ body: 'first' }, { body: 'second' }];
+    v.fields[27] = [{ issue_field_name: 'Priority', single_select_option: { name: 'High' } }, { issue_field_name: 'Other' }];
+    v.dependencies = { 27: [28, 29], 28: [27], 29: [27] };
+  });
+  const before = snapshot(s.repo);
+  const value = read(s);
+  assert.equal(value.comments.length, 2);
+  assert.equal(value.fields.length, 2);
+  assert.equal(value.fields[0].single_select_option.name, 'High');
+  assert.deepEqual(value.blockedBy.map(i => i.number), [28, 29]);
+  assert.deepEqual(value.blocking.map(i => i.number), [28, 29]);
+  assert.deepEqual(s.calls().map(c => c.endpoint), ['', '/comments?per_page=100', '/issue-field-values?per_page=100',
+    '/dependencies/blocked_by?per_page=100', '/dependencies/blocking?per_page=100'].map(suffix => endpoint(27) + suffix));
+  for (const call of s.calls()) {
+    assert.equal(call.method, 'GET'); assert.equal(call.body, undefined);
+    if (call.endpoint.includes('?')) { assert.ok(call.args.includes('--paginate')); assert.ok(call.args.includes('--slurp')); }
   }
-  cpSync(path.join(root, '.specify/templates/overrides'), path.join(dir, '.specify/templates/overrides'), { recursive: true });
-  mkdirSync(path.join(dir, 'specs'));
-  writeFileSync(path.join(dir, 'options.json'), JSON.stringify(options));
-  const shim = path.join(dir, 'shim.cjs');
-  writeFileSync(shim, `
-const fs = require('node:fs');
-const cp = require('node:child_process');
-const path = require('node:path');
-const options = JSON.parse(fs.readFileSync(path.join(__dirname, 'options.json')));
-cp.spawnSync = (command, args, spawnOptions) => {
-  fs.appendFileSync(path.join(__dirname, 'calls.jsonl'), JSON.stringify({command,args,input:spawnOptions.input})+'\\n');
-  const ok = stdout => ({status:0, stdout:typeof stdout === 'string'?stdout:JSON.stringify(stdout), stderr:''});
-  if (command === 'git') {
-    if (args[0] === 'status') return ok(options.dirty ? ' M changed' : '');
-    if (args[0] === 'remote') return ok('https://github.com/gaydevs/gaydevs-platform.git');
-    if (args[0] === 'branch') return ok(options.branchExists ? 'feat/00027-existing' : '');
-    return ok('');
-  }
-  const endpoint = args[1];
-  if (endpoint === 'graphql') {
-    const body = JSON.parse(spawnOptions.input);
-    if (body.query.includes('query(')) return ok({data:{organization:{projectV2:{id:'P_1',title:'gaydevs project',fields:{nodes:[{id:'F_1',name:'Status',options:[{id:'O_1',name:'Specifying'}]}]}}}}});
-    if (body.query.includes('addProjectV2ItemById')) return ok({data:{addProjectV2ItemById:{item:{id:'ITEM_1'}}}});
-    if (body.query.includes('updateProjectV2ItemFieldValue')) return ok({data:{updateProjectV2ItemFieldValue:{projectV2Item:{id:'ITEM_1'}}}});
-  }
-  if (options.apiFailure && endpoint.includes('blocked_by')) return {status:1,stdout:'',stderr:'HTTP 403'};
-  if (endpoint === 'repos/gaydevs/gaydevs-platform') return ok({id:123});
-  if (endpoint.endsWith('/issues/27')) return ok({number:27,node_id:'I_test',state:'open',title:'Login',type:{name:'Feature'},body:'<!-- gaydevs-sdd:Feature -->',html_url:'https://github.com/gaydevs/gaydevs-platform/issues/27'});
-  if (endpoint.includes('blocked_by')) return ok([options.blocked ? [{state:'open',html_url:'blocker'}] : []]);
-  if (endpoint.includes('issue-field-values')) return ok([[{issue_field_name:'Priority',single_select_option:{name:'High'}}]]);
-  if (args.includes('--slurp')) return ok([[]]);
-  if (endpoint.endsWith('/comments') && args.includes('POST')) return ok({id:1});
-  return {status:1,stdout:'',stderr:'Unexpected endpoint: '+endpoint};
-};
-require('node:module').syncBuiltinESMExports();
-`);
-  return {
-    dir,
-    run: (...args) => spawnSync(process.execPath, ['--require', shim, path.join(dir, 'scripts/sdd/from-issue.mjs'), '27', ...args], { cwd: dir, encoding: 'utf8' }),
-    status: status => spawnSync(process.execPath, ['--require', shim, path.join(dir, 'scripts/sdd/status.mjs'), '27', status, '--human-approved'], { cwd: dir, encoding: 'utf8' }),
-    calls: () => readFileSync(path.join(dir, 'calls.jsonl'), 'utf8').trim().split('\n').map(JSON.parse),
-  };
+  assert.deepEqual(snapshot(s.repo), before); noWrites(s);
+});
+
+for (const [type, prefix] of [['Feature', 'feat'], ['Bug', 'fix'], ['Refactor', 'refactor'], ['Tech Debt', 'techdebt']]) {
+  test(`from-issue / Git branches: ${type} starts from origin/develop, only expected artifacts and API writes`, t => {
+    const s = sandbox(t); s.change(v => { v.issues[27] = issue(27, type); });
+    const before = new Map(snapshot(s.repo));
+    const preview = JSON.parse(ok(s.cli('from-issue', [27])));
+    assert.equal(preview.branch, `${prefix}/00027-technical-fixture-27`); noWrites(s);
+    s.clearCalls();
+    const work = JSON.parse(ok(start(s)));
+    assert.equal(s.git('branch', '--show-current'), preview.branch);
+    assert.equal(s.git('rev-parse', 'HEAD'), s.git('rev-parse', 'origin/develop'));
+    const dir = path.join(s.repo, work.directory);
+    assert.deepEqual(readdirSync(dir), ['spec.md']);
+    assert.match(readFileSync(path.join(dir, 'spec.md'), 'utf8'), /pendente/i);
+    const after = new Map(snapshot(s.repo));
+    for (const [name, value] of before) { assert.equal(after.get(name), value, name); after.delete(name); }
+    assert.deepEqual([...after.keys()].sort(), [path.normalize(work.directory), path.join(work.directory, 'spec.md')].sort());
+    s.noPointer();
+    assert.equal(s.state().items.I_27.status, 'Specifying');
+    const mutations = s.mutations();
+    assert.equal(mutations.length, 3);
+    assert.equal(mutations[0].method, 'POST'); assert.equal(mutations[0].endpoint, 'graphql');
+    assert.deepEqual(mutations[0].body.variables, { project: 'P_1', issue: 'I_27' });
+    assert.deepEqual(mutations[1].body.variables, { project: 'P_1', item: 'ITEM_I_27', field: 'STATUS', option: 'S_1' });
+    assert.deepEqual(request(mutations[2]), { method: 'POST', endpoint: endpoint(27) + '/comments', body: {
+      body: `Trabalho iniciado localmente em \`${work.branch}\`.\n\nSpec: \`${work.directory}/spec.md\` (rascunho; aprovação humana pendente).\n\nProject sincronizado.\nA branch/spec ainda precisa ser publicada para ter link remoto.`
+    } });
+  });
 }
 
-test('consulta é somente leitura e inclui prioridade nativa', () => {
-  const f = fixture();
-  const result = f.run();
-  assert.equal(result.status, 0, result.stderr);
-  const value = JSON.parse(result.stdout);
-  assert.equal(value.id, '00027');
-  assert.equal(value.context.fields[0].single_select_option.name, 'High');
-  assert.ok(f.calls().every(call => !call.args.includes('POST') && call.command !== 'git'));
+test('from-issue: IDs above 99999 are not truncated', t => {
+  const s = sandbox(t); s.change(v => { v.issues[123456] = issue(123456); });
+  const work = JSON.parse(ok(start(s, 123456)));
+  assert.equal(work.id, '123456');
+  assert.equal(JSON.parse(ok(s.helper('common', []))).FEATURE_DIR, path.join(s.repo, work.directory));
 });
-test('início cria apenas spec, sem ponteiro/cache; comenta após preparar trabalho', () => {
-  const f = fixture();
-  const result = f.run('--start', '--without-project');
-  assert.equal(result.status, 0, result.stderr);
-  assert.ok(existsSync(path.join(f.dir, 'specs/00027-login/spec.md')));
-  assert.equal(existsSync(path.join(f.dir, 'specs/00027-login/plan.md')), false);
-  assert.equal(existsSync(path.join(f.dir, '.specify/feature.json')), false);
-  assert.equal(existsSync(path.join(f.dir, '.specify/context')), false);
-  assert.ok(f.calls().some(call => call.args.includes('POST')));
-  assert.match(result.stderr, /pendente/);
+
+for (const [label, changes, pattern] of [
+  ['closed', { state: 'closed' }, /aberta/], ['no native type', { type: null }, /fora do SDD/],
+  ['no marker', { body: '' }, /fora do SDD/], ['Team Access', { type: { name: 'Team Access' } }, /fora do SDD/],
+  ['Task', { type: { name: 'Task' } }, /fora do SDD/], ['PR number', { pull_request: {} }, /pertence a um PR/],
+]) test(`Issue eligibility: ${label} refuses mutation`, t => {
+  const s = sandbox(t); s.change(v => Object.assign(v.issues[27], changes));
+  const before = snapshot(s.repo);
+  read(s); fail(start(s), pattern); noWrites(s);
+  assert.equal(s.git('branch', '--show-current'), 'develop');
+  assert.deepEqual(snapshot(s.repo), before);
 });
-test('início ignora resíduos legados sem lê-los ou atualizá-los', () => {
-  const f = fixture();
-  const pointer = path.join(f.dir, '.specify/feature.json');
-  const cache = path.join(f.dir, '.specify/context/00027.json');
-  mkdirSync(path.dirname(cache));
-  writeFileSync(pointer, 'not valid JSON');
-  writeFileSync(cache, 'stale remote state');
-  const result = f.run('--start', '--without-project');
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(pointer, 'utf8'), 'not valid JSON');
-  assert.equal(readFileSync(cache, 'utf8'), 'stale remote state');
-  assert.ok(existsSync(path.join(f.dir, 'specs/00027-login/spec.md')));
+
+test('Blockers: open permits reading only; closed permits start', t => {
+  const s = sandbox(t); s.change(v => { v.dependencies[27] = [28]; });
+  assert.equal(read(s).blockedBy[0].state, 'open');
+  fail(start(s), /Blockers abertos/); noWrites(s);
+  s.change(v => { v.issues[28].state = 'closed'; });
+  ok(start(s)); assert.equal(s.state().items.I_27.status, 'Specifying');
 });
-test('Issue bloqueada pode ser consultada sem mutações', () => {
-  const f = fixture({ blocked: true });
-  const result = f.run();
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(JSON.parse(result.stdout).context.blockedBy[0].state, 'open');
-  assert.ok(f.calls().every(call => call.command !== 'git' && !call.args.includes('POST')));
-  assert.equal(existsSync(path.join(f.dir, 'specs/00027-login')), false);
-  assert.equal(existsSync(path.join(f.dir, '.specify/feature.json')), false);
+
+test('Human gates: Feature refuses --trivial', t => {
+  const s = sandbox(t); fail(start(s, 27, '--trivial'), /Feature sempre exige spec/); noWrites(s);
 });
-test('blocker impede Ready e In Progress mesmo com aprovação humana declarada', () => {
-  for (const status of ['Ready', 'In Progress']) {
-    const f = fixture({ blocked: true, project: true });
-    const result = f.status(status);
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /Blockers abertos/);
-    assert.ok(f.calls().every(call => !call.args.includes('POST')));
+for (const type of ['Bug', 'Refactor', 'Tech Debt']) test(`from-issue trivial: ${type} creates branch without spec/cache`, t => {
+  const s = sandbox(t); s.change(v => { v.issues[27] = issue(27, type); });
+  const before = snapshot(s.repo);
+  const work = JSON.parse(ok(start(s, 27, '--trivial')));
+  assert.equal(work.needsSpec, false);
+  assert.equal(s.git('branch', '--show-current'), work.branch);
+  assert.deepEqual(snapshot(s.repo), before);
+  assert.equal(s.state().items.I_27.status, 'In Progress');
+  assert.match(s.state().comments[27][0].body, /declarado trivial/); s.noPointer();
+});
+
+for (const scenario of ['dirty', 'local branch', 'remote branch', 'existing spec', 'incorrect remote', 'missing infrastructure']) {
+  test(`Git preflight: ${scenario} fails without mutation`, t => {
+    const s = sandbox(t); let pattern;
+    if (scenario === 'dirty') { writeFileSync(path.join(s.repo, 'dirty.txt'), 'uncommitted'); pattern = /Faça commit/; }
+    if (scenario === 'local branch') { s.git('branch', 'feat/00027-existing'); pattern = /Já existe branch/; }
+    if (scenario === 'remote branch') { ok(s.run('git', ['update-ref', 'refs/heads/fix/00027-existing', s.git('rev-parse', 'HEAD')], s.remote)); pattern = /Já existe branch/; }
+    if (scenario === 'existing spec') {
+      mkdirSync(path.join(s.repo, 'specs/00027-existing')); writeFileSync(path.join(s.repo, 'specs/00027-existing/spec.md'), 'existing');
+      s.git('add', '.'); s.git('commit', '-m', 'existing spec'); pattern = /Spec já existe/;
+    }
+    if (scenario === 'incorrect remote') { s.git('remote', 'set-url', 'origin', 'https://github.com/gaydevs/incorrect.git'); pattern = /origin não corresponde/; }
+    if (scenario === 'missing infrastructure') {
+      const other = path.join(s.base, 'missing-base');
+      s.git('worktree', 'add', '-b', 'sandbox-missing', other);
+      ok(s.run('git', ['rm', '.github/sdd.json'], other)); ok(s.run('git', ['commit', '-m', 'missing infrastructure'], other));
+      ok(s.run('git', ['fetch', other, 'sandbox-missing:develop'], s.remote)); pattern = /ainda não contém a infraestrutura/;
+    }
+    const before = snapshot(s.repo);
+    fail(start(s), pattern); noWrites(s);
+    assert.equal(s.git('branch', '--show-current'), 'develop'); assert.deepEqual(snapshot(s.repo), before);
+  });
+}
+
+test('Project unavailable: explicit --without-project records pending synchronization', t => {
+  const s = sandbox(t); s.change(v => { v.project = null; });
+  fail(start(s), /Project configurado não encontrado/); noWrites(s); s.clearCalls();
+  const result = start(s, 27, '--without-project'); ok(result); assert.match(result.stderr, /pendente/);
+  assert.ok(s.calls().every(c => c.endpoint !== 'graphql'));
+  assert.deepEqual(s.state().items, {}); assert.match(s.state().comments[27][0].body, /sincronização pendente/);
+});
+
+test('Project status: all current statuses use exact field/item/option; repeated add is idempotent', t => {
+  const s = sandbox(t);
+  for (const [i, status] of ['Backlog', 'Specifying', 'Ready', 'In Progress'].entries()) {
+    s.clearCalls(); ok(s.cli('status', [27, status, '--human-approved']));
+    assert.equal(s.state().items.I_27.status, status);
+    const calls = s.mutations();
+    assert.deepEqual(calls.map(c => [c.method, c.endpoint]), [['POST', 'graphql'], ['POST', 'graphql']]);
+    assert.deepEqual(calls[0].body.variables, { project: 'P_1', issue: 'I_27' });
+    assert.deepEqual(calls[1].body.variables, { project: 'P_1', item: 'ITEM_I_27', field: 'STATUS', option: `S_${i}` });
+  }
+  assert.equal(Object.keys(s.state().items).length, 1);
+});
+
+test('Human gates: Ready/In Progress need explicit declaration and reject open blockers even with it', t => {
+  const s = sandbox(t);
+  for (const status of ['Ready', 'In Progress']) fail(s.cli('status', [27, status]), /gates humanos/);
+  s.change(v => { v.dependencies[27] = [28]; });
+  for (const status of ['Ready', 'In Progress']) fail(s.cli('status', [27, status, '--human-approved']), /Blockers abertos/);
+  noWrites(s);
+});
+test('PR/release scope: Review, Ready for Release and Done remain unsupported in this round', t => {
+  const s = sandbox(t);
+  for (const status of ['Review', 'Ready for Release', 'Done', 'Unknown']) fail(s.cli('status', [27, status]), /Esta fase opera apenas/);
+  noWrites(s);
+});
+test('Project validation: wrong title, missing field/option and GraphQL errors fail closed', t => {
+  const s = sandbox(t); const project = s.state().project;
+  for (const mutate of [
+    v => { v.project.title = 'wrong'; }, v => { v.project.fields.nodes = []; },
+    v => { v.project.fields.nodes[0].options = []; }, v => { v.failures = [{ endpoint: 'graphql', kind: 'graphql' }]; },
+  ]) {
+    s.change(v => { v.project = structuredClone(project); v.failures = []; mutate(v); });
+    fail(s.cli('status', [27, 'Backlog']), /Project|Status|GraphQL/); noWrites(s);
   }
 });
-test('blocker e erro de API impedem qualquer mutação', () => {
-  for (const options of [{ blocked: true }, { apiFailure: true }]) {
-    const f = fixture(options);
-    const result = f.run('--start', '--without-project');
-    assert.notEqual(result.status, 0);
-    assert.ok(f.calls().every(call => !call.args.includes('POST') && !call.args.includes('switch')));
+
+test('Priority: High/Medium/Low POST native field with exact body, fresh read and invalid inputs', t => {
+  const s = sandbox(t);
+  for (const value of ['High', 'Medium', 'Low']) {
+    s.clearCalls(); ok(s.cli('priority', [27, value]));
+    assert.deepEqual(s.calls().map(request), [{ method: 'POST', endpoint: endpoint(27) + '/issue-field-values',
+      body: { issue_field_values: [{ field_id: 99, value }] } }]);
+    assert.equal(read(s).fields[0].single_select_option.name, value);
+  }
+  s.clearCalls(); fail(s.cli('priority', [27, 'Urgent']), /High, Medium ou Low/);
+  fail(s.cli('priority', [0, 'High']), /número positivo/); assert.deepEqual(s.calls(), []);
+});
+test('Dependencies: add/remove use native id, idempotent add and both directions reread', t => {
+  const s = sandbox(t);
+  ok(s.cli('dependency', ['add', 27, 28]));
+  assert.deepEqual(s.calls().map(request), [
+    { method: 'GET', endpoint: endpoint(28), body: undefined },
+    { method: 'POST', endpoint: endpoint(27) + '/dependencies/blocked_by', body: { issue_id: 1028 } },
+  ]);
+  ok(s.cli('dependency', ['add', 27, 28]));
+  assert.deepEqual(read(s).blockedBy.map(i => i.number), [28]);
+  assert.deepEqual(read(s, 28).blocking.map(i => i.number), [27]);
+  s.clearCalls(); ok(s.cli('dependency', ['remove', 27, 28]));
+  assert.deepEqual(s.calls().map(request), [
+    { method: 'GET', endpoint: endpoint(28), body: undefined },
+    { method: 'DELETE', endpoint: endpoint(27) + '/dependencies/blocked_by/1028', body: undefined },
+  ]);
+  assert.deepEqual(read(s).blockedBy, []);
+});
+test('Dependencies: self, PR and unknown action rejected', t => {
+  const s = sandbox(t);
+  fail(s.cli('dependency', ['add', 27, 27]), /inválida/);
+  s.change(v => { v.issues[28].pull_request = {}; });
+  fail(s.cli('dependency', ['add', 27, 28]), /inválida/);
+  fail(s.cli('dependency', ['unknown', 27, 28]), /Uso:/); noWrites(s);
+});
+
+test('API errors: HTTP, malformed JSON and mutation failures propagate without false success', t => {
+  const s = sandbox(t);
+  for (const [script, args, failure, pattern] of [
+    ['issue', [27], { endpoint: endpoint(27), method: 'GET', code: 403 }, /HTTP 403/],
+    ['from-issue', [27, '--start'], { endpoint: 'blocked_by', code: 503 }, /HTTP 503/],
+    ['issue', [27], { endpoint: endpoint(27), kind: 'json' }, /JSON|Unexpected token/],
+    ['priority', [27, 'High'], { endpoint: 'issue-field-values', method: 'POST', code: 403 }, /HTTP 403/],
+    ['dependency', ['add', 27, 28], { endpoint: 'blocked_by', method: 'POST', code: 422 }, /HTTP 422/],
+    ['status', [27, 'Backlog'], { endpoint: 'graphql', code: 503 }, /HTTP 503/],
+  ]) {
+    s.change(v => { v.failures = [failure]; });
+    fail(s.cli(script, args), pattern);
+    assert.deepEqual(s.state().items, {}); assert.deepEqual(s.state().dependencies, {}); assert.deepEqual(s.state().fields, {});
+    assert.equal(s.git('branch', '--show-current'), 'develop');
   }
 });
-test('checkout sujo e branch duplicada são recusados sem sobrescrever', () => {
-  for (const options of [{ dirty: true }, { branchExists: true }]) {
-    const f = fixture(options);
-    const result = f.run('--start', '--without-project');
-    assert.notEqual(result.status, 0);
-    assert.ok(f.calls().every(call => !call.args.includes('switch') && !call.args.includes('POST')));
-  }
+test('from-issue partial failure reports error and retry preserves recoverable work', t => {
+  const s = sandbox(t); s.change(v => { v.failures = [{ endpoint: '/comments', method: 'POST', code: 503 }]; });
+  fail(start(s), /HTTP 503/);
+  assert.equal(s.git('branch', '--show-current'), 'feat/00027-technical-fixture-27');
+  assert.ok(existsSync(path.join(s.repo, 'specs/00027-technical-fixture-27/spec.md')));
+  assert.equal(s.state().items.I_27.status, 'Specifying');
+  const before = snapshot(s.repo); s.clearCalls();
+  fail(start(s), /Faça commit/); noWrites(s); assert.deepEqual(snapshot(s.repo), before);
 });
-test('Project configurado recebe a própria Issue e Status Specifying', () => {
-  const f = fixture({ project: true });
-  const result = f.run('--start');
-  assert.equal(result.status, 0, result.stderr);
-  const requests = f.calls().filter(call => call.args[1] === 'graphql').map(call => JSON.parse(call.input));
-  assert.deepEqual(requests[1].variables, { project: 'P_1', issue: 'I_test' });
-  assert.deepEqual(requests[2].variables, { project: 'P_1', item: 'ITEM_1', field: 'F_1', option: 'O_1' });
+
+test('Spec Kit helpers: create-new-feature wrapper dry run/start and common paths', t => {
+  const s = sandbox(t);
+  const preview = JSON.parse(ok(s.helper('create-new-feature', ['-Issue', '27', '-DryRun'])));
+  noWrites(s); assert.equal(s.git('branch', '--show-current'), 'develop');
+  ok(s.helper('create-new-feature', ['-Issue', '27']));
+  const paths = JSON.parse(ok(s.helper('common', [])));
+  assert.equal(paths.FEATURE_DIR, path.join(s.repo, preview.directory));
+  assert.equal(paths.FEATURE_SPEC, path.join(paths.FEATURE_DIR, 'spec.md'));
+  assert.equal(paths.IMPL_PLAN, path.join(paths.FEATURE_DIR, 'plan.md'));
+  assert.equal(paths.TASKS, path.join(paths.FEATURE_DIR, 'tasks.md'));
+  assert.equal(paths.CURRENT_BRANCH, preview.branch);
+});
+
+test('Spec Kit helpers: resolve-template selects real override stack and rejects absent template', t => {
+  const s = sandbox(t);
+  const value = JSON.parse(ok(s.helper('resolve-template', ['constitution-template', '-Json'])));
+  assert.equal(value.TEMPLATE_NAME, 'constitution-template');
+  assert.ok(value.TEMPLATE_CONTENT.length > 0);
+  fail(s.helper('resolve-template', ['missing-sandbox-template', '-Json']), /Could not resolve/);
+  fail(s.helper('resolve-template', []), /Template name is required/);
+});
+
+test('Integrated flow: Issue → blockers → start → spec → explicit fixture decisions → plan → tasks → In Progress', t => {
+  const s = sandbox(t);
+  assert.deepEqual(read(s).blockedBy, []);
+  const work = JSON.parse(ok(start(s)));
+  assert.equal(s.state().items.I_27.status, 'Specifying');
+  const dir = path.join(s.repo, work.directory), spec = path.join(dir, 'spec.md'), plan = path.join(dir, 'plan.md');
+  assert.match(readFileSync(spec, 'utf8'), /pendente/i); assert.equal(existsSync(plan), false);
+  fail(s.cli('status', [27, 'Ready']), /gates humanos/);
+  // External decisions are explicit test inputs, NOT real approvals granted by the agent.
+  const decisions = { spec: 'TEST FIXTURE ONLY: simulated external spec decision', plan: 'TEST FIXTURE ONLY: simulated external plan decision' };
+  writeFileSync(spec, readFileSync(spec, 'utf8') + '\n' + decisions.spec);
+  ok(s.helper('setup-plan', ['-Json']));
+  assert.ok(existsSync(plan)); assert.equal(existsSync(path.join(dir, 'tasks.md')), false);
+  writeFileSync(plan, readFileSync(plan, 'utf8') + '\n' + decisions.plan);
+  ok(s.helper('setup-tasks', ['-Json']));
+  // setup-tasks returns the template; the command/agent writes the approved task breakdown.
+  writeFileSync(path.join(dir, 'tasks.md'), '# Technical fixture tasks\n- [ ] T001 sandbox only\n');
+  ok(s.helper('check-prerequisites', ['-Json', '-RequireTasks', '-IncludeTasks']));
+  for (const status of ['Ready', 'In Progress']) ok(s.cli('status', [27, status, '--human-approved']));
+  assert.equal(s.state().items.I_27.status, 'In Progress');
+  assert.ok(s.calls().every(c => !/pulls|releases/.test(c.endpoint)));
+  s.noPointer();
 });

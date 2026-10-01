@@ -79,3 +79,8 @@ Pester; usa `pwsh` (ou `PWSH_BIN`), com fallback padrão do PowerShell 7 no Wind
 Os testes não criam Features reais nem fazem chamadas de escrita ao GitHub.
 Uma reinstalação do upstream pode restaurar o resolver antigo: preserve esta
 adaptação e execute a suíte antes de aceitar atualização da infraestrutura.
+
+O harness local em `scripts/sdd/sandbox/` não altera os helpers upstream:
+executa os seis helpers instalados em fixtures descartáveis, com Git real,
+gh fake obrigatório e guards de rede. Detalhes, contratos exercitados e limites
+da comprovação estão em [sdd-sandbox.md](../docs/sdd-sandbox.md).

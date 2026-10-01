@@ -267,7 +267,7 @@ manifests/registries são configurações de instalação/projeto. As extensões
 opcionais git/agent-context não estão instaladas. Origem upstream, adaptações e
 limites estão documentados em [UPSTREAM.md](../.specify/UPSTREAM.md).
 
-Validação: **22 testes passaram** em `node --test scripts/sdd/*.test.mjs`, incluindo:
+Validação daquele checkpoint: **22 testes passaram** em `node --test scripts/sdd/*.test.mjs`, incluindo:
 
 - Os quatro prefixos de branch, troca entre duas features e worktrees independentes.
 - Erros de branch inválida, detached HEAD sem override, spec ausente e ambiguidade.
@@ -285,6 +285,32 @@ Frontend, backend e deploy permanecem intactos. Isso não substitui a validaçã
 ao vivo após integrar o PR #12 em origin/develop; essa integração segue pendente
 de review humano. Trabalhos simultâneos em branches diferentes exigem worktrees
 separados, porque processos no mesmo checkout continuam compartilhando o HEAD Git.
+
+### Suíte sandbox reproduzível — 2026-10-01
+
+O comando `node --test scripts/sdd/*.test.mjs` agora executa **55 testes:
+55 passaram, 0 falharam, 0 ignorados**, em aproximadamente 108 segundos no
+Windows com Node 24.15.0 e PowerShell 7.6.6. `git diff --check` passou.
+Cobertura e limites estão em [sdd-sandbox.md](sdd-sandbox.md).
+
+Os seis scripts SDD e os seis helpers PowerShell foram exercitados com Git real,
+remotos bare/worktrees temporários e gh fake obrigatório. As chamadas ao fake
+verificam método, endpoint e body. A suíte bloqueia gh real e rede, verifica
+resíduos legados/override efêmero e comprova a limpeza após falha intencional.
+Nenhuma fixture deixa branch, repo ou worktree no checkout de trabalho.
+
+O cenário integrado usa decisões externas fictícias explicitamente identificadas
+como entradas de teste. Não autentica nem concede aprovação humana. Nenhuma
+Feature/Issue/card real foi criada e houve **zero writes reais no GitHub pela
+suíte**. Commit/push e atualização deste PR são publicação separada do checkpoint.
+Frontend, backend, helpers de produção e deploy não foram alterados nesta etapa.
+
+Releitura via gh confirmou PR #12 aberto para develop, REVIEW_REQUIRED/BLOCKED;
+develop mantém uma aprovação atualizada e conversas resolvidas, inclusive para
+admins; main mantém uma aprovação, code owner e restrição ao team gdevs-admins.
+A suíte não comprova o efeito remoto dessas regras nem substitui o teste após
+integração em origin/develop. Review/merge humano, promoção e bootstrap de
+CODEOWNERS em main continuam pendentes. Não houve merge ou automação da 2C.
 
 ### Deploy e separação da Rodada 2C
 
