@@ -149,6 +149,30 @@ test('Project status: all current statuses use exact field/item/option; repeated
   assert.equal(Object.keys(s.state().items).length, 1);
 });
 
+test('Project status: Rejected and Canceled close the Issue as not planned', t => {
+  const s = sandbox(t);
+  for (const [status, option] of [['Rejected', 'S_7'], ['Canceled', 'S_8']]) {
+    s.change(v => {
+      v.issues[27] = issue(27, 'Feature');
+      v.items = {};
+    });
+    s.clearCalls(); ok(s.cli('status', [27, status]));
+    assert.equal(s.state().items.I_27.status, status);
+    assert.equal(s.state().issues[27].state, 'closed');
+    assert.equal(s.state().issues[27].state_reason, 'not_planned');
+    const calls = s.mutations();
+    assert.deepEqual(calls.map(c => [c.method, c.endpoint]), [['POST', 'graphql'], ['POST', 'graphql'], ['PATCH', endpoint(27)]]);
+    assert.deepEqual(calls[0].body.variables, { project: 'P_1', issue: 'I_27' });
+    assert.deepEqual(calls[1].body.variables, { project: 'P_1', item: 'ITEM_I_27', field: 'STATUS', option });
+    assert.deepEqual(calls[2].body, { state: 'closed', state_reason: 'not_planned' });
+  }
+  s.change(v => {
+    v.issues[27] = issue(27, 'Feature', { state: 'closed', state_reason: 'completed' });
+    v.items = {};
+  });
+  s.clearCalls(); fail(s.cli('status', [27, 'Rejected']), /motivo diferente/); noWrites(s);
+});
+
 test('Human gates: Ready/In Progress need explicit declaration and reject open blockers even with it', t => {
   const s = sandbox(t);
   for (const status of ['Ready', 'In Progress']) fail(s.cli('status', [27, status]), /gates humanos/);

@@ -52,7 +52,7 @@ sem criar uma prioridade independente.
 
 Status, na ordem configurada:
 
-`Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done`
+`Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done → Rejected → Canceled`
 
 Número, IDs do Project, Status/opções, Priority/opções, tipos, equipe e workflows
 estão em [`.github/sdd.json`](../.github/sdd.json). São um registro auditado;
@@ -115,9 +115,11 @@ arquivados ao final. Não são demandas de produto.
 - `node --test scripts/sdd/*.test.mjs`: 12 testes passaram.
 - Configurações remotas relidas após alterações; JSON e diff local conferidos.
 
-`status.mjs` preserva o limite desta implantação: Backlog, Specifying, Ready e
-In Progress. Os sete Status são manipuláveis pela API gh; os exercícios de QA
-não representam aprovação humana nem implantação das transições finais.
+`status.mjs` preserva o limite desta implantação: Backlog, Specifying, Ready,
+In Progress, Rejected e Canceled. Rejected e Canceled encerram a Issue como
+Not planned. Review, Ready for Release e Done são manipuláveis pela API gh, mas
+seguem fora do CLI até as transições finais. Os exercícios de QA não representam
+aprovação humana nem implantação das transições finais.
 A configuração de permissões permite o uso por gdevs com Write e token `project`;
 o teste real de escrita foi feito com a conta admin disponível.
 
@@ -320,6 +322,27 @@ admins; main mantém uma aprovação, code owner e restrição ao team gdevs-adm
 A suíte não comprova o efeito remoto dessas regras nem substitui o teste após
 integração em origin/develop. Review/merge humano, promoção e bootstrap de
 CODEOWNERS em main continuam pendentes. Não houve merge ou automação da 2C.
+
+### Estados Not planned — 2026-10-01
+
+Atualização autorizada por `luvittor` nesta sessão, no mesmo PR #12 e sem merge.
+O campo Status do Project recebeu as opções **Rejected** (`25316d13`) e
+**Canceled** (`01b977e1`), preservando as sete opções anteriores e sua ordem.
+O registro auditado em `.github/sdd.json` foi atualizado após releitura do
+Project real.
+
+`status.mjs` agora aceita Backlog, Specifying, Ready, In Progress, Rejected e
+Canceled. Rejected representa demanda analisada e decidida como não sendo feita.
+Canceled representa demanda anteriormente aceita/iniciada e depois interrompida.
+Ambos sincronizam o card e encerram a Issue como **Not planned** via API do
+GitHub. Done permanece reservado para trabalho entregue/concluído; Review,
+Ready for Release e Done seguem recusados pelo CLI nesta rodada, sem automações
+maiores da 2C.
+
+A sandbox passou a simular o PATCH de encerramento Not planned e ganhou regressão
+para os dois fluxos terminais. Validação local após a mudança:
+**57 testes, 57 pass, 0 fail, 0 skipped**, em aproximadamente 115 segundos.
+Nenhuma Feature real foi criada.
 
 ### Deploy e separação da Rodada 2C
 

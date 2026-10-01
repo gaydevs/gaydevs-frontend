@@ -22,6 +22,9 @@ Versão 1.0.0 · ratificada em 2026-09-30 para a fase inicial autorizada.
 11. Revisão de outro gdev para PR → develop e aprovação/merge de admin para main
     são gates humanos. A implantação final das proteções/releases fica para a fase 2.
 12. Done só após entrega em main/produção quando aplicável e encerramento da Issue.
+    Rejected e Canceled encerram a Issue como Not planned: Rejected para demandas
+    analisadas e recusadas, Canceled para demandas aceitas/iniciadas e depois
+    interrompidas.
 
 Governança: esta constitution prevalece sobre defaults do Spec Kit. Mudanças
 exigem revisão humana; não atribuir aprovação com base apenas em execução de script.

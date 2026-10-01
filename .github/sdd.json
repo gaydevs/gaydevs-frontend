@@ -14,7 +14,9 @@
     "In Progress": "47fc9ee4",
     "Review": "e11074e6",
     "Ready for Release": "50f2544c",
-    "Done": "98236657"
+    "Done": "98236657",
+    "Rejected": "25316d13",
+    "Canceled": "01b977e1"
   },
   "priorityFieldId": 47412460,
   "priorityFieldNodeId": "IFSS_kgDOAtN07A",
@@ -38,5 +40,5 @@
   },
   "initialStatusWorkflowId": "PWF_lADOE-iGEc4BlQMRzgcoizk",
   "types": {"Feature": "feat", "Bug": "fix", "Refactor": "refactor", "Tech Debt": "techdebt"},
-  "statuses": ["Backlog", "Specifying", "Ready", "In Progress", "Review", "Ready for Release", "Done"]
+  "statuses": ["Backlog", "Specifying", "Ready", "In Progress", "Review", "Ready for Release", "Done", "Rejected", "Canceled"]
 }

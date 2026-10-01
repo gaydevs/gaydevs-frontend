@@ -26,7 +26,7 @@ incluindo acentos, setas e emoji, sem sanitizar ou reparar o JSON recebido.
 | Estado persistente | Resíduos legados envenenados e inalterados, bloqueio de leitura/escrita/probe por Node, auditoria AST dos helpers, snapshots dos arquivos compartilhados e ausência de cache substituto |
 | Issue / blockers | Tipos elegíveis, fechada, sem tipo/marcador, Team Access, Task, PR, paginação de comentários/campos e ambas as direções de dependência, blocker aberto/fechado |
 | Priority / dependências | High/Medium/Low no campo nativo, add/remove com ID nativo, releitura, repetição idempotente, erros e chamadas com método/endpoint/body verificados |
-| Project / gates | Quatro Status desta fase, opção/campo/Project inválidos, indisponibilidade explícita, erros HTTP/GraphQL/JSON, declaração humana obrigatória e blockers |
+| Project / gates | Status ativos desta fase, encerramento Not planned, opção/campo/Project inválidos, indisponibilidade explícita, erros HTTP/GraphQL/JSON, declaração humana obrigatória e blockers |
 | Fluxo integrado | Consulta → blockers → from-issue --start → branch/spec → Specifying → decisões externas fictícias → plan → tasks → In Progress |
 | Segurança / limpeza | gh real, subprocessos não permitidos e rede bloqueados; teste deliberadamente falho comprova remoção de checkout, remoto bare e worktree |
 
@@ -83,6 +83,7 @@ exigem revisão explícita da fronteira antes de serem aceitos na suíte.
 - Promoção develop → main, bootstrap do CODEOWNERS na base main, reviews reais
   e deploy continuam dependendo dos gates e da infraestrutura reais.
 - Review / Ready for Release / Done seguem recusados pelo CLI nesta fase.
+  Rejected e Canceled são suportados apenas como encerramentos Not planned.
   Não foram implementadas automações da Rodada 2C, nem executada Feature real.
 
 A suíte faz **zero leituras e zero escritas reais no GitHub**. Publicar o

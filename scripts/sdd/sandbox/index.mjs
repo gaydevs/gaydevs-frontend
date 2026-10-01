@@ -31,7 +31,7 @@ export function initialState() {
     issues: { 27: issue(), 28: issue(28, 'Bug'), 29: issue(29, 'Tech Debt') },
     comments: {}, fields: {}, dependencies: {}, items: {}, failures: [],
     project: { id: 'P_1', title: 'gaydevs project', fields: { nodes: [{ id: 'STATUS', name: 'Status',
-      options: ['Backlog', 'Specifying', 'Ready', 'In Progress', 'Review', 'Ready for Release', 'Done'].map((name, i) => ({ id: `S_${i}`, name })) }] } },
+      options: ['Backlog', 'Specifying', 'Ready', 'In Progress', 'Review', 'Ready for Release', 'Done', 'Rejected', 'Canceled'].map((name, i) => ({ id: `S_${i}`, name })) }] } },
   };
 }
 export function snapshot(directory, relative = '') {

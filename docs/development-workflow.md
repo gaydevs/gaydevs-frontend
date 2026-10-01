@@ -50,7 +50,8 @@ aprovação humana; preservam os gates de spec e plan.
 
 O board é [gaydevs project](https://github.com/orgs/gaydevs/projects/1), privado
 da organização. Membros têm Read, `gdevs-team` Write e owners Admin. Status:
-Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done.
+Backlog → Specifying → Ready → In Progress → Review → Ready for Release → Done
+→ Rejected → Canceled.
 Confira no [registro da implantação](sdd-implementation.md) quais recursos estão
 ativos. Na rotina, agente/scripts devem atualizar o board via gh; arrastar cards
 é uma exceção. Não há automação final de PR/release nesta fase.
@@ -73,6 +74,8 @@ node scripts/sdd/dependency.mjs add 27 12    # 27 blocked by 12
 node scripts/sdd/dependency.mjs remove 27 12
 node scripts/sdd/status.mjs 27 Ready --human-approved
 node scripts/sdd/status.mjs 27 "In Progress" --human-approved
+node scripts/sdd/status.mjs 27 Rejected
+node scripts/sdd/status.mjs 27 Canceled
 ```
 
 `--human-approved` declara aprovação recebida; não a concede nem a verifica em
@@ -80,10 +83,13 @@ um sistema de identidade. Blockers abertos impedem início/Ready/In Progress.
 O agente não deve usar a opção sem evidência humana. Um trabalho trivial não
 precisa dos gates de spec/plan; sua classificação e início precisam estar acordados.
 
-Nesta rodada, `status.mjs` continua limitado a Backlog, Specifying, Ready e
-In Progress. Os sete Status estão disponíveis na API gh; as transições ligadas
-a PR/release e suas automações serão tratadas na Rodada 2C. Nenhuma movimentação
-de card equivale a aprovação humana.
+Nesta rodada, `status.mjs` opera Backlog, Specifying, Ready, In Progress,
+Rejected e Canceled. Rejected registra uma demanda analisada e decidida como
+não sendo feita; Canceled registra uma demanda anteriormente aceita/iniciada e
+depois interrompida. Ambos atualizam o Project e encerram a Issue como
+**Not planned**. Review, Ready for Release e Done continuam reservados às
+transições de PR/release da Rodada 2C. Nenhuma movimentação de card equivale a
+aprovação humana.
 
 Com Project indisponível, `--without-project` permite iniciar com aviso explícito
 de sincronização pendente. Não equivale a card criado. Depois sincronize via
@@ -116,7 +122,8 @@ mantêm acesso nativo de atualização, mas não substituem o code owner exigido
 
 Para preservar o histórico do checkpoint e da promoção, usar **Create a merge
 commit**. Aprovação e merge continuam humanos; nenhuma automação foi criada.
-Done continua condicionado à entrega em produção e ao encerramento da Issue;
-as automações finais de release/Project ficam para a Rodada 2C.
+Done continua condicionado à entrega em produção e ao encerramento da Issue como
+concluída; Rejected e Canceled são os encerramentos Not planned. As automações
+finais de release/Project ficam para a Rodada 2C.
 O deploy existente roda em pushes de main/master que alterem frontend ou o
 workflow de deploy, além de disparo manual; nem todo merge dispara deploy.

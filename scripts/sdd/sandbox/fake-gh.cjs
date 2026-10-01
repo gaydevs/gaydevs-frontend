@@ -71,7 +71,15 @@ function serve() {
   const suffix = match[2];
   const issue = state.issues[number];
   assert.ok(issue, `Missing fixture Issue ${number}`);
-  if (!suffix) { assert.equal(method, 'GET'); return output(issue); }
+  if (!suffix) {
+    if (method === 'GET') return output(issue);
+    if (method === 'PATCH') {
+      assert.deepEqual(body, { state: 'closed', state_reason: 'not_planned' });
+      issue.state = 'closed';
+      issue.state_reason = 'not_planned';
+      save(); return output(issue);
+    }
+  }
   if (method === 'GET') {
     if (suffix === '/comments?per_page=100') return output(pages(state.comments[number] || []));
     if (suffix === '/issue-field-values?per_page=100') return output(pages(state.fields[number] || []));

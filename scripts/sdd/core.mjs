@@ -29,17 +29,20 @@ export function issueNumber(value) {
   if (!/^[1-9]\d*$/.test(String(value)) || !Number.isSafeInteger(Number(value))) throw new Error('Informe um número positivo de Issue.');
   return Number(value);
 }
-export function identity(issue, trivial = false) {
+export function sddIdentity(issue, { trivial = false, requireOpen = true } = {}) {
   const type = issue.type?.name;
   const prefix = config.types[type];
   // The form marker also allows agents to create an equivalent issue through the API.
   if (!prefix || !issue.body?.includes(`<!-- gaydevs-sdd:${type} -->`)) throw new Error('Issue fora do SDD: exige tipo nativo e marcador do form correspondente.');
   if (issue.pull_request) throw new Error('O número pertence a um PR.');
-  if (issue.state !== 'open') throw new Error('A Issue precisa estar aberta para iniciar trabalho.');
+  if (requireOpen && issue.state !== 'open') throw new Error('A Issue precisa estar aberta para iniciar trabalho.');
   if (trivial && type === 'Feature') throw new Error('Feature sempre exige spec.');
   const id = String(issueNumber(issue.number)).padStart(5, '0');
   const slug = issue.title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 70).replace(/-$/, '') || 'issue';
   return { id, type, branch: `${prefix}/${id}-${slug}`, directory: `specs/${id}-${slug}`, needsSpec: !trivial };
+}
+export function identity(issue, trivial = false) {
+  return sddIdentity(issue, { trivial });
 }
 export function readIssue(number) {
   const endpoint = `repos/${config.repository}/issues/${issueNumber(number)}`;
@@ -70,5 +73,12 @@ export function setStatus(issue, status, board = project()) {
   if (!option) throw new Error(`Status ${status} não configurado no Project.`);
   const added = graphql(`mutation($project:ID!,$issue:ID!){addProjectV2ItemById(input:{projectId:$project,contentId:$issue}){item{id}}}`, { project: board.id, issue: issue.node_id });
   graphql(`mutation($project:ID!,$item:ID!,$field:ID!,$option:String!){updateProjectV2ItemFieldValue(input:{projectId:$project,itemId:$item,fieldId:$field,value:{singleSelectOptionId:$option}}){projectV2Item{id}}}`, { project: board.id, item: added.addProjectV2ItemById.item.id, field: field.id, option: option.id });
+}
+export function closeNotPlanned(issue) {
+  if (issue.state === 'closed' && issue.state_reason === 'not_planned') return issue;
+  return api(`repos/${config.repository}/issues/${issueNumber(issue.number)}`, {
+    method: 'PATCH',
+    body: { state: 'closed', state_reason: 'not_planned' },
+  });
 }
 export function main(fn) { try { fn(); } catch (error) { console.error(error.message); process.exitCode = 1; } }
