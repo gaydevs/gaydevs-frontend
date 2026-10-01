@@ -18,14 +18,35 @@ altamente recomendável. O processo também funciona executando os comandos manu
    Se falhar após criar a branch, inspecione os efeitos e retome; não recrie IDs.
 4. `#27` vira `00027`. Branches: `feat/00027-slug`, `fix/00027-slug`,
    `refactor/00027-slug`, `techdebt/00027-slug`. Uma pasta `specs/00027-slug/`
-   atende frontend e backend. Ao retomar, use a pasta existente e atualize
-   `.specify/feature.json` com `{"feature_directory":"specs/00027-slug"}`.
+   atende frontend e backend. Ao retomar, entre na branch existente e releia a
+   Issue via `issue.mjs`. Os helpers usam o ID da branch deste worktree para
+   localizar exatamente uma pasta `specs/NNNNN-*`; ausência ou ambiguidade é erro.
 5. Sintetize a spec; o rascunho não é uma spec pronta. Um gdev aprova spec antes
    do plan e plan antes das tasks/implementação. Registre a aprovação e sua origem
    nos artefatos. Tasks ficam em `tasks.md`, sem Issues automáticas por task.
 6. PR para `develop`: resumo, testes, critérios de aceite, riscos relevantes,
    `Spec: 00027` e `Refs #27`. Revisão de outro gdev é obrigatória no processo.
    Não encerre a Issue na integração em develop.
+
+O contexto local vem da branch Git; Issue, comentários, Priority e dependências
+devem ser relidos do GitHub. Não há ponteiro global nem cache de Issue. Resíduos
+antigos de `.specify/feature.json` e `.specify/context/` são ignorados e nunca
+consultados ou atualizados. Use worktrees separados para trabalhos simultâneos:
+trocar a branch de um checkout muda o HEAD para todos os processos nele.
+
+Para automação/CI, `SPECIFY_FEATURE_DIRECTORY` aceita uma pasta existente, absoluta
+ou relativa à raiz do projeto, somente no ambiente da execução. Nunca use `setx`,
+perfil de shell ou configuração persistente. Exemplo em um processo PowerShell
+filho, após aprovação da spec:
+
+```powershell
+pwsh -NoProfile -Command '$env:SPECIFY_FEATURE_DIRECTORY = "specs/00027-slug"; & ./.specify/scripts/powershell/setup-plan.ps1 -Json'
+```
+
+O processo seguinte volta a resolver pela própria branch. `SPECIFY_FEATURE` não
+é suportado e causa erro explícito, mesmo com override de diretório. Em detached
+HEAD ou sem Git, o override de diretório é obrigatório. Os helpers não concedem
+aprovação humana; preservam os gates de spec e plan.
 
 O board é [gaydevs project](https://github.com/orgs/gaydevs/projects/1), privado
 da organização. Membros têm Read, `gdevs-team` Write e owners Admin. Status:

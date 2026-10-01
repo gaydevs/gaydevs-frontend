@@ -35,8 +35,7 @@ if (-not $paths) {
     exit 1
 }
 
-# Ensure the feature directory exists
-New-Item -ItemType Directory -Path $paths.FEATURE_DIR -Force | Out-Null
+# The resolver requires an existing feature directory; never guess/create one.
 
 # Copy plan template if plan doesn't already exist
 if (Test-Path $paths.IMPL_PLAN -PathType Leaf) {

@@ -96,151 +96,81 @@ function Get-RepoRoot {
     return (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "../../..")).Path
 }
 
+# Local SDD adaptation: read the branch of this checkout/worktree, never a pointer.
 function Get-CurrentBranch {
-    # Return feature name from explicit state only.
-    # Feature state is set by SPECIFY_FEATURE (from create-new-feature or
-    # the git extension) or implicitly via .specify/feature.json.
-    if ($env:SPECIFY_FEATURE) {
-        return $env:SPECIFY_FEATURE
-    }
-
-    # No explicit feature set - return empty to signal "unknown".
-    return ""
-}
-
-
-
-# Persist a feature_directory value to .specify/feature.json.
-# Writes only when the file is missing or the value differs from what's stored.
-function Save-FeatureJson {
-    param(
-        [Parameter(Mandatory = $true)][string]$RepoRoot,
-        [Parameter(Mandatory = $true)][string]$FeatureDirectory
-    )
-
-    # Strip repo root prefix if the value is absolute and under repo root.
-    # Use case-insensitive comparison on Windows only (case-sensitive filesystems elsewhere).
-    $prefix = $RepoRoot + [System.IO.Path]::DirectorySeparatorChar
-    if ($null -ne $IsWindows) { $onWin = $IsWindows } else { $onWin = $true }
-    if ($onWin) {
-        $cmp = [System.StringComparison]::OrdinalIgnoreCase
-    } else {
-        $cmp = [System.StringComparison]::Ordinal
-    }
-    if ($FeatureDirectory.StartsWith($prefix, $cmp)) {
-        $FeatureDirectory = $FeatureDirectory.Substring($prefix.Length)
-    }
-
-    $fjPath = Join-Path (Join-Path $RepoRoot '.specify') 'feature.json'
-
-    # Read current value and skip write when unchanged
-    if (Test-Path -LiteralPath $fjPath -PathType Leaf) {
-        try {
-            $raw = [System.IO.File]::ReadAllText($fjPath, [System.Text.Encoding]::UTF8)
-            $cfg = $raw | ConvertFrom-Json
-            if ($cfg.feature_directory -eq $FeatureDirectory) {
-                return
-            }
-        } catch {
-            # File is corrupt or unreadable - overwrite it
-        }
-    }
-
-    # Ensure .specify/ directory exists
-    $specifyDir = Join-Path $RepoRoot '.specify'
-    if (-not (Test-Path -LiteralPath $specifyDir -PathType Container)) {
-        New-Item -ItemType Directory -Path $specifyDir -Force | Out-Null
-    }
-
-    # Write feature.json
-    $json = @{ feature_directory = $FeatureDirectory } | ConvertTo-Json -Compress
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($fjPath, $json, $utf8NoBom)
+    param([string]$RepoRoot = (Get-RepoRoot))
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return "" }
+    $branch = & git -C $RepoRoot symbolic-ref --quiet --short HEAD 2>$null
+    if ($LASTEXITCODE -ne 0) { return "" }
+    return "$branch".Trim()
 }
 
 function Get-FeaturePathsEnv {
-    # Read-only callers (e.g. check-prerequisites.ps1 -PathsOnly) pass -NoPersist
-    # so pure path resolution never writes .specify/feature.json, which would
-    # dirty the working tree or overwrite a pinned value (issue #3025).
     param(
+        # Compatibility with upstream callers; resolution is always read-only.
         [switch]$NoPersist,
         [switch]$ReturnNullOnError
     )
 
-    # SPECIFY_FEATURE_NO_PERSIST is the environment-level equivalent of -NoPersist,
-    # letting an orchestrator (multi-agent runner, CI matrix) guarantee that no
-    # script invocation in the process tree writes .specify/feature.json, even
-    # scripts that don't pass -NoPersist themselves (#4128).
-    $noPersist = [bool]$NoPersist -or $env:SPECIFY_FEATURE_NO_PERSIST -eq '1' -or $env:SPECIFY_FEATURE_NO_PERSIST -eq 'true'
+    try {
+        if ($env:SPECIFY_FEATURE) {
+            throw 'SPECIFY_FEATURE is not supported. Unset it and use an SDD branch or SPECIFY_FEATURE_DIRECTORY for this execution.'
+        }
+        $repoRoot = Get-RepoRoot -ReturnNullOnError:$ReturnNullOnError
+        if (-not $repoRoot) { return $null }
+        $currentBranch = Get-CurrentBranch -RepoRoot $repoRoot
 
-    $repoRoot = Get-RepoRoot -ReturnNullOnError:$ReturnNullOnError
-    if (-not $repoRoot) { return $null }
-    $currentBranch = Get-CurrentBranch
-
-    # Resolve feature directory.  Priority:
-    #   1. SPECIFY_FEATURE_DIRECTORY env var (explicit override)
-    #   2. .specify/feature.json "feature_directory" key (persisted by specify command)
-    #   3. Error - no feature context available
-    $featureJson = Join-Path $repoRoot '.specify/feature.json'
-    if ($env:SPECIFY_FEATURE_DIRECTORY) {
-        $featureDir = $env:SPECIFY_FEATURE_DIRECTORY
-        # Normalize relative paths to absolute under repo root
-        if (-not [System.IO.Path]::IsPathRooted($featureDir)) {
-            $featureDir = Join-Path $repoRoot $featureDir
-        }
-        # Persist to feature.json so future sessions without the env var still
-        # work - unless the caller opted out for read-only resolution (#3025).
-        if (-not $noPersist) {
-            Save-FeatureJson -RepoRoot $repoRoot -FeatureDirectory $env:SPECIFY_FEATURE_DIRECTORY
-        }
-    } elseif (Test-Path $featureJson) {
-        $featureJsonRaw = [System.IO.File]::ReadAllText($featureJson, [System.Text.Encoding]::UTF8)
-        try {
-            $featureConfig = $featureJsonRaw | ConvertFrom-Json
-        } catch {
-            [Console]::Error.WriteLine("ERROR: Feature directory not found. Set SPECIFY_FEATURE_DIRECTORY or ensure .specify/feature.json contains feature_directory.")
-            if ($ReturnNullOnError) { return $null }
-            exit 1
-        }
-        if ($featureConfig.feature_directory) {
-            $featureDir = $featureConfig.feature_directory
-            # Normalize relative paths to absolute under repo root
+        if ($env:SPECIFY_FEATURE_DIRECTORY) {
+            # Explicit process-scoped override. Never write to disk, Git config,
+            # user/machine environment, or another process's context.
+            $featureDir = $env:SPECIFY_FEATURE_DIRECTORY
             if (-not [System.IO.Path]::IsPathRooted($featureDir)) {
                 $featureDir = Join-Path $repoRoot $featureDir
             }
+            if (-not (Test-Path -LiteralPath $featureDir -PathType Container)) {
+                throw "SPECIFY_FEATURE_DIRECTORY must point to an existing directory: $featureDir"
+            }
         } else {
-            [Console]::Error.WriteLine("ERROR: Feature directory not found. Set SPECIFY_FEATURE_DIRECTORY or ensure .specify/feature.json contains feature_directory.")
-            if ($ReturnNullOnError) { return $null }
-            exit 1
+            # Five digits minimum, matching the Issue formatter without truncation.
+            if ($currentBranch -cnotmatch '^(feat|fix|refactor|techdebt)/([0-9]{5,})-[a-z0-9]+(?:-[a-z0-9]+)*$') {
+                throw "Branch '$currentBranch' is not an SDD branch. Use feat/fix/refactor/techdebt/NNNNN-slug or SPECIFY_FEATURE_DIRECTORY for this execution (also required for detached HEAD/no Git)."
+            }
+            $id = $Matches[2]
+            if ($id -match '^0+$' -or ($id.Length -gt 5 -and $id.StartsWith('0'))) {
+                throw "Invalid SDD Issue ID in branch '$currentBranch': $id"
+            }
+            $specsDir = Join-Path $repoRoot 'specs'
+            $candidates = @()
+            if (Test-Path -LiteralPath $specsDir -PathType Container) {
+                $candidates = @(Get-ChildItem -LiteralPath $specsDir -Directory -ErrorAction Stop |
+                    Where-Object { $_.Name -clike "$id-*" })
+            }
+            if ($candidates.Count -eq 0) {
+                throw "No spec directory for Issue $id. Expected exactly one specs/$id-* in this checkout."
+            }
+            if ($candidates.Count -gt 1) {
+                throw "Ambiguous spec directories for Issue $($id): $($candidates.Name -join ', '). Expected exactly one specs/$id-*."
+            }
+            $featureDir = $candidates[0].FullName
         }
-    } else {
-        [Console]::Error.WriteLine("ERROR: Feature directory not found. Set SPECIFY_FEATURE_DIRECTORY or run the specify command to create .specify/feature.json.")
+        $featureDir = (Resolve-Path -LiteralPath $featureDir -ErrorAction Stop).Path
+
+        [PSCustomObject]@{
+            REPO_ROOT      = $repoRoot
+            CURRENT_BRANCH = $currentBranch
+            FEATURE_DIR    = $featureDir
+            FEATURE_SPEC   = Join-Path $featureDir 'spec.md'
+            IMPL_PLAN      = Join-Path $featureDir 'plan.md'
+            TASKS          = Join-Path $featureDir 'tasks.md'
+            RESEARCH       = Join-Path $featureDir 'research.md'
+            DATA_MODEL     = Join-Path $featureDir 'data-model.md'
+            QUICKSTART     = Join-Path $featureDir 'quickstart.md'
+            CONTRACTS_DIR  = Join-Path $featureDir 'contracts'
+        }
+    } catch {
+        [Console]::Error.WriteLine("ERROR: $($_.Exception.Message)")
         if ($ReturnNullOnError) { return $null }
         exit 1
-    }
-
-    # When no branch context exists (no SPECIFY_FEATURE, feature resolved via
-    # SPECIFY_FEATURE_DIRECTORY or feature.json), fall back to the feature
-    # directory basename so CURRENT_BRANCH is a usable identifier rather than
-    # an empty, misleading value (issue #3026).
-    if (-not $currentBranch) {
-        # TrimEnd (not [Path]::TrimEndingDirectorySeparator, which is .NET Core
-        # only) keeps this working on Windows PowerShell 5.1 / .NET Framework.
-        $featureDirTrimmed = $featureDir.TrimEnd('/', '\')
-        $currentBranch = Split-Path -Leaf $featureDirTrimmed
-    }
-
-    [PSCustomObject]@{
-        REPO_ROOT     = $repoRoot
-        CURRENT_BRANCH = $currentBranch
-        FEATURE_DIR   = $featureDir
-        FEATURE_SPEC  = Join-Path $featureDir 'spec.md'
-        IMPL_PLAN     = Join-Path $featureDir 'plan.md'
-        TASKS         = Join-Path $featureDir 'tasks.md'
-        RESEARCH      = Join-Path $featureDir 'research.md'
-        DATA_MODEL    = Join-Path $featureDir 'data-model.md'
-        QUICKSTART    = Join-Path $featureDir 'quickstart.md'
-        CONTRACTS_DIR = Join-Path $featureDir 'contracts'
     }
 }
 

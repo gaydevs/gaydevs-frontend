@@ -70,16 +70,29 @@ test('consulta é somente leitura e inclui prioridade nativa', () => {
   assert.equal(value.context.fields[0].single_select_option.name, 'High');
   assert.ok(f.calls().every(call => !call.args.includes('POST') && call.command !== 'git'));
 });
-test('início cria apenas spec e ponteiro; comenta após preparar trabalho', () => {
+test('início cria apenas spec, sem ponteiro/cache; comenta após preparar trabalho', () => {
   const f = fixture();
   const result = f.run('--start', '--without-project');
   assert.equal(result.status, 0, result.stderr);
   assert.ok(existsSync(path.join(f.dir, 'specs/00027-login/spec.md')));
   assert.equal(existsSync(path.join(f.dir, 'specs/00027-login/plan.md')), false);
-  const pointer = JSON.parse(readFileSync(path.join(f.dir, '.specify/feature.json')));
-  assert.equal(pointer.feature_directory, 'specs/00027-login');
+  assert.equal(existsSync(path.join(f.dir, '.specify/feature.json')), false);
+  assert.equal(existsSync(path.join(f.dir, '.specify/context')), false);
   assert.ok(f.calls().some(call => call.args.includes('POST')));
   assert.match(result.stderr, /pendente/);
+});
+test('início ignora resíduos legados sem lê-los ou atualizá-los', () => {
+  const f = fixture();
+  const pointer = path.join(f.dir, '.specify/feature.json');
+  const cache = path.join(f.dir, '.specify/context/00027.json');
+  mkdirSync(path.dirname(cache));
+  writeFileSync(pointer, 'not valid JSON');
+  writeFileSync(cache, 'stale remote state');
+  const result = f.run('--start', '--without-project');
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(pointer, 'utf8'), 'not valid JSON');
+  assert.equal(readFileSync(cache, 'utf8'), 'stale remote state');
+  assert.ok(existsSync(path.join(f.dir, 'specs/00027-login/spec.md')));
 });
 test('Issue bloqueada pode ser consultada sem mutações', () => {
   const f = fixture({ blocked: true });

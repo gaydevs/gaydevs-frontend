@@ -62,14 +62,9 @@ EXAMPLES:
 # Source common functions
 . "$PSScriptRoot/common.ps1"
 
-# Get feature paths.
-# In -PathsOnly mode this is pure resolution, so pass -NoPersist to opt out of
-# the feature.json write side effect (issue #3025).
-if ($PathsOnly) {
-    $paths = Get-FeaturePathsEnv -NoPersist
-} else {
-    $paths = Get-FeaturePathsEnv
-}
+# Resolution is always read-only. -PathsOnly skips document prerequisites,
+# but still requires a valid, unambiguous feature directory.
+$paths = Get-FeaturePathsEnv
 
 # If paths-only mode, output paths and exit (no validation)
 if ($PathsOnly) {

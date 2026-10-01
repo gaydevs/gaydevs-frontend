@@ -45,6 +45,12 @@ Não interpretar falha de rede como credencial inválida sem verificar a causa.
   Não automatizar aprovação/review/merge/release nem converter tasks em Issues.
 - Antes de retomar, consulte novamente Issue e dependências e procure branch/spec
   pelo ID existente. Erros parciais podem deixar branch, arquivos ou card criados.
+- Helpers resolvem a spec pela branch Git do worktree e exigem uma única pasta
+  `specs/NNNNN-*`. Não use ponteiros ou snapshots locais como contexto. Releia
+  Issue, comentários, Priority e dependências via `issue.mjs` quando necessários.
+  `SPECIFY_FEATURE_DIRECTORY` só pode ser fornecido ao processo da execução;
+  nunca persista esse override. `SPECIFY_FEATURE` é recusado. Use worktrees
+  separados para agentes/features simultâneos.
 
 ## Validação
 

@@ -215,7 +215,8 @@ Enquanto esse PR não for integrado, origin/develop não contém os scripts nem 
 templates SDD. Não declarar `from-issue --start` validado nessa base. Após o merge,
 executar em checkout isolado de origin/develop com uma fixture técnica Tech Debt,
 consultando primeiro Issue/dependências e respeitando o número atribuído pelo
-GitHub; verificar branch derivada de develop, rascunho único, contexto e Status.
+GitHub; verificar branch derivada de develop, rascunho único, contexto remoto
+relido e Status. Não esperar ponteiro ou snapshot local de contexto.
 Não implementar uma Feature nem aprovar spec/plan durante essa verificação.
 
 Depois, outro gdev abre a promoção `develop → main`, com `Refs #8`; um membro
@@ -244,7 +245,46 @@ e Write de `gdevs-team` confirmados. Comparação dos snapshots antes/depois mos
 develop idêntica e main alterada somente nas listas de usuários/teams de atualização
 e descarte de reviews; todos os outros gates e zero bypass foram preservados.
 Os 12 testes SDD passaram e `git diff --check` passou. Frontend, backend, deploy,
-`.specify/feature.json` e `.specify/context` não foram alterados nesta correção.
+`.specify/feature.json` e `.specify/context` não foram alterados naquela correção
+de governança; a dependência desses mecanismos foi removida na correção abaixo.
+
+### Contexto local pela branch — 2026-10-01
+
+Correção arquitetural autorizada nesta sessão, no mesmo PR #12 e sem merge.
+O resolver compartilhado do Spec Kit passou a usar a branch Git deste worktree,
+extrair o ID SDD e exigir exatamente uma pasta `specs/NNNNN-*`. Branch inválida,
+spec ausente e ambiguidade falham claramente. `SPECIFY_FEATURE_DIRECTORY` pode
+selecionar uma pasta existente somente no ambiente da execução; não é gravado
+em arquivo, cache, configuração Git ou ambiente persistente. `SPECIFY_FEATURE`
+é recusado explicitamente, orientando usar a branch SDD ou o override de diretório.
+
+`from-issue` deixou de gravar `.specify/feature.json` e `.specify/context/NNNNN.json`.
+Resíduos antigos permanecem ignorados e nunca participam da resolução, mesmo
+com JSON inválido ou dados obsoletos. Não foi criado um substituto global. Issue,
+comentários, Priority e dependências devem ser relidos por `issue.mjs` via gh.
+A auditoria não encontrou outro ponteiro de feature no fluxo instalado; os
+manifests/registries são configurações de instalação/projeto. As extensões
+opcionais git/agent-context não estão instaladas. Origem upstream, adaptações e
+limites estão documentados em [UPSTREAM.md](../.specify/UPSTREAM.md).
+
+Validação: **22 testes passaram** em `node --test scripts/sdd/*.test.mjs`, incluindo:
+
+- Os quatro prefixos de branch, troca entre duas features e worktrees independentes.
+- Erros de branch inválida, detached HEAD sem override, spec ausente e ambiguidade.
+- Override relativo/absoluto efêmero, execução sem Git com override e rejeição de
+  SPECIFY_FEATURE mesmo combinado com override válido.
+- Resíduos legados inalterados, ausência de cache substituto e infraestrutura
+  compartilhada sem alterações durante a resolução.
+- `from-issue` com Git real e remoto bare local, `setup-plan`, `setup-tasks` e
+  contratos de `check-prerequisites` usados por implement/analyze/clarify/checklist/converge.
+- Todos os testes SDD anteriores, com a expectativa do ponteiro removida.
+
+Os testes usam repositórios/worktrees temporários, Git e PowerShell 7 reais e API
+GitHub simulada para a fixture de from-issue. Nenhuma Feature real foi criada.
+Frontend, backend e deploy permanecem intactos. Isso não substitui a validação
+ao vivo após integrar o PR #12 em origin/develop; essa integração segue pendente
+de review humano. Trabalhos simultâneos em branches diferentes exigem worktrees
+separados, porque processos no mesmo checkout continuam compartilhando o HEAD Git.
 
 ### Deploy e separação da Rodada 2C
 
