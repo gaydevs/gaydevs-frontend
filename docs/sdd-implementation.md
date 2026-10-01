@@ -112,7 +112,7 @@ arquivados ao final. Não são demandas de produto.
 - `dependency.mjs` adicionou #10 blocked by #11; leitura confirmou também
   #11 blocking #10. Ready e In Progress foram recusados com blocker aberto.
   Relação removida pelo script e ausência relida nos dois sentidos.
-- `node --test scripts/sdd/*.test.mjs`: 12 testes passaram.
+- `node scripts/sdd/test.mjs`: 12 testes passaram.
 - Configurações remotas relidas após alterações; JSON e diff local conferidos.
 
 `status.mjs` preserva o limite desta implantação: Backlog, Specifying, Ready,
@@ -189,7 +189,7 @@ com acesso de rede confirmou autenticação válida e os escopos necessários.
 
 ### Integração e verificações pendentes de review humano
 
-Validação local da Rodada 2B: os 12 testes de `node --test scripts/sdd/*.test.mjs`
+Validação local da Rodada 2B: os 12 testes de `node scripts/sdd/test.mjs`
 passaram, e `git diff --check` não encontrou erros. O diff de frontend/backend
 e do workflow de deploy contra origin/main permaneceu vazio. A releitura GraphQL
 confirmou os mesmos dois IDs de proteção e zero permissões de bypass de PR.
@@ -269,7 +269,7 @@ manifests/registries são configurações de instalação/projeto. As extensões
 opcionais git/agent-context não estão instaladas. Origem upstream, adaptações e
 limites estão documentados em [UPSTREAM.md](../.specify/UPSTREAM.md).
 
-Validação daquele checkpoint: **22 testes passaram** em `node --test scripts/sdd/*.test.mjs`, incluindo:
+Validação daquele checkpoint: **22 testes passaram** em `node scripts/sdd/test.mjs`, incluindo:
 
 - Os quatro prefixos de branch, troca entre duas features e worktrees independentes.
 - Erros de branch inválida, detached HEAD sem override, spec ausente e ambiguidade.
@@ -290,7 +290,7 @@ separados, porque processos no mesmo checkout continuam compartilhando o HEAD Gi
 
 ### Suíte sandbox reproduzível — 2026-10-01
 
-O primeiro checkpoint de `node --test scripts/sdd/*.test.mjs` executou **55 testes:
+O primeiro checkpoint de `node scripts/sdd/test.mjs` executou **55 testes:
 55 passaram, 0 falharam, 0 ignorados**, em aproximadamente 108 segundos no
 Windows com Node 24.15.0 e PowerShell 7.6.6. `git diff --check` passou.
 Cobertura e limites estão em [sdd-sandbox.md](sdd-sandbox.md).

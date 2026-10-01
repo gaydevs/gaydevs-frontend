@@ -37,7 +37,8 @@ main(() => {
     const directory = path.join(root, work.directory);
     mkdirSync(directory, { recursive: true });
     const template = readFileSync(path.join(root, '.specify/templates/overrides/spec-template.md'), 'utf8');
-    writeFileSync(path.join(directory, 'spec.md'), template.replaceAll('{{TITLE}}', context.issue.title).replaceAll('{{ISSUE}}', context.issue.html_url).replaceAll('{{ID}}', work.id));
+    const values = { TITLE: context.issue.title, ISSUE: context.issue.html_url, ID: work.id };
+    writeFileSync(path.join(directory, 'spec.md'), template.replace(/\{\{(TITLE|ISSUE|ID)\}\}/g, (_, key) => values[key]));
   }
   if (board) setStatus(context.issue, work.needsSpec ? 'Specifying' : 'In Progress', board);
   api(`repos/${config.repository}/issues/${context.issue.number}/comments`, { method: 'POST', body: { body: `Trabalho iniciado localmente em \`${work.branch}\`.\n\n${work.needsSpec ? `Spec: \`${work.directory}/spec.md\` (rascunho; aprovação humana pendente).` : 'Trabalho declarado trivial; sem spec.'}\n\n${withoutProject ? 'Project: sincronização pendente por limitação de acesso/configuração.' : 'Project sincronizado.'}\nA branch/spec ainda precisa ser publicada para ter link remoto.` } });

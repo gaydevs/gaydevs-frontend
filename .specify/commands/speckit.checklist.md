@@ -77,7 +77,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Execution Steps
 
-1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -Template checklist-template` from repo root and parse JSON for FEATURE_DIR, AVAILABLE_DOCS list, and TEMPLATE_CONTENT.
+1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly` from repo root and parse the feature paths. Resolve `checklist-template` separately with `.specify/scripts/powershell/resolve-template.ps1 checklist-template -Json`. Inspect `spec.md` and any optional `plan.md`/`tasks.md` that exist; checklist generation must not require `plan.md`.
    - All file paths must be absolute.
    - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
