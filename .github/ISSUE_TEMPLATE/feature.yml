@@ -1,0 +1,29 @@
+name: "Feature"
+description: "Novo comportamento ou capacidade"
+type: "Feature"
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Problema ou oportunidade
+      value: '<!-- gaydevs-sdd:Feature -->'
+      description: Quem se beneficia e qual necessidade esta Feature atende? Preserve o marcador acima.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Capacidade proposta e escopo
+      description: Descreva o novo comportamento, os principais fluxos e o que fica fora do escopo.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Quais resultados observáveis demonstram que a nova capacidade atende à necessidade?
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Feature sempre exige spec.'

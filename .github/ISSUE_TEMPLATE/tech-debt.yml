@@ -1,0 +1,29 @@
+name: "Tech Debt"
+description: "Problema técnico acumulado"
+type: "Tech Debt"
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Dívida técnica e impacto
+      value: '<!-- gaydevs-sdd:Tech Debt -->'
+      description: Descreva o problema acumulado, evidências e o custo ou risco de adiá-lo. Preserve o marcador acima.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Tratamento proposto e limites
+      description: Qual parte da dívida será resolvida ou reduzida nesta Issue e o que ficará pendente?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Quais evidências mostrarão que a dívida foi reduzida ou eliminada e que as áreas afetadas continuam funcionando?
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Tech Debt não trivial exige spec.'
