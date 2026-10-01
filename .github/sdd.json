@@ -1,0 +1,44 @@
+{
+  "repository": "gaydevs/gaydevs-platform",
+  "organization": "gaydevs",
+  "baseBranch": "develop",
+  "projectTitle": "gaydevs project",
+  "projectNumber": 1,
+  "projectId": "PVT_kwDOE-iGEc4BlQMR",
+  "projectUrl": "https://github.com/orgs/gaydevs/projects/1",
+  "statusFieldId": "PVTSSF_lADOE-iGEc4BlQMRzhj9wpE",
+  "statusOptionIds": {
+    "Backlog": "f75ad846",
+    "Specifying": "37a6751f",
+    "Ready": "e5188fb0",
+    "In Progress": "47fc9ee4",
+    "Review": "e11074e6",
+    "Ready for Release": "50f2544c",
+    "Done": "98236657",
+    "Rejected": "25316d13",
+    "Canceled": "01b977e1"
+  },
+  "priorityFieldId": 47412460,
+  "priorityFieldNodeId": "IFSS_kgDOAtN07A",
+  "projectPriorityFieldId": "PVTSSF_lADOE-iGEc4BlQMRzhj9xSQ",
+  "priorityOptionIds": {"High": 82997236, "Medium": 82997237, "Low": 82997238},
+  "issueTypeIds": {"Feature": 882272785, "Bug": 882272784, "Refactor": 888091875, "Tech Debt": 888091882},
+  "projectAccess": {
+    "visibility": "private",
+    "organizationBaseRole": "READ",
+    "teamSlug": "gdevs-team",
+    "teamId": "T_kwDOE-iGEc4BLR-w",
+    "teamRole": "WRITE",
+    "organizationOwnersRole": "ADMIN"
+  },
+  "autoAdd": {
+    "mode": "native",
+    "workflowId": "PWF_lADOE-iGEc4BlQMRzgcojeQ",
+    "repository": "gaydevs/gaydevs-platform",
+    "filter": "is:issue type:Feature,Bug,Refactor,\"Tech Debt\"",
+    "fallback": "node scripts/sdd/status.mjs NUMERO Backlog"
+  },
+  "initialStatusWorkflowId": "PWF_lADOE-iGEc4BlQMRzgcoizk",
+  "types": {"Feature": "feat", "Bug": "fix", "Refactor": "refactor", "Tech Debt": "techdebt"},
+  "statuses": ["Backlog", "Specifying", "Ready", "In Progress", "Review", "Ready for Release", "Done", "Rejected", "Canceled"]
+}

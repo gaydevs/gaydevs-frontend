@@ -1,0 +1,43 @@
+name: "Bug"
+description: "Comportamento existente incorreto"
+type: "Bug"
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Comportamento atual e impacto
+      value: '<!-- gaydevs-sdd:Bug -->'
+      description: O que acontece de errado e quem é afetado? Inclua evidências disponíveis e preserve o marcador acima.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Resultado esperado
+      description: O que deveria acontecer nas mesmas condições?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos e pré-condições. Se o erro for intermitente, informe a frequência observada.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Informe versão ou commit, navegador, sistema e demais condições relevantes.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      description: Como verificar a correção e confirmar que o comportamento esperado foi restaurado?
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: 'Após criar, defina Priority (High, Medium ou Low) no campo nativo. Use blocked by / blocking para dependências. Bug não trivial exige spec.'
