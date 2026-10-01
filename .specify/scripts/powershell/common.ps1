@@ -1,6 +1,11 @@
 #!/usr/bin/env pwsh
 # Common PowerShell functions analogous to common.sh
 
+# Local adaptation: helper stdout is a UTF-8 protocol, independent of the
+# invoking Windows console code page. OEM fallback can turn Unicode arrows
+# into raw SUB (0x1A), corrupting otherwise correctly serialized JSON.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
 
 # Find repository root by searching upward for .specify directory
 # This is the primary marker for spec-kit projects

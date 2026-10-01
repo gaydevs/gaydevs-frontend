@@ -288,10 +288,19 @@ separados, porque processos no mesmo checkout continuam compartilhando o HEAD Gi
 
 ### Suíte sandbox reproduzível — 2026-10-01
 
-O comando `node --test scripts/sdd/*.test.mjs` agora executa **55 testes:
+O primeiro checkpoint de `node --test scripts/sdd/*.test.mjs` executou **55 testes:
 55 passaram, 0 falharam, 0 ignorados**, em aproximadamente 108 segundos no
 Windows com Node 24.15.0 e PowerShell 7.6.6. `git diff --check` passou.
 Cobertura e limites estão em [sdd-sandbox.md](sdd-sandbox.md).
+
+A execução posterior pelo gdev revelou uma dependência da página de código do
+terminal: o template de constitution gerava JSON inválido em OEM 437/850.
+O erro foi reproduzido na mesma posição 644: a seta era convertida em SUB (0x1A).
+`common.ps1` e o launcher da sandbox agora explicitam UTF-8 sem BOM.
+A regressão falhou antes da correção e passou depois, verificando conteúdo
+Unicode integral sob 437, 850, 1252 e 65001. Não há sanitização do JSON.
+Após a correção, a suíte completa passou: **56 testes, 56 pass, 0 fail,
+0 skipped**, em aproximadamente 113 segundos. `git diff --check` passou.
 
 Os seis scripts SDD e os seis helpers PowerShell foram exercitados com Git real,
 remotos bare/worktrees temporários e gh fake obrigatório. As chamadas ao fake

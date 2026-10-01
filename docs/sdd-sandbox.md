@@ -13,6 +13,10 @@ caminhos padrão de Git e PowerShell 7; `PWSH_BIN` permite selecionar o PowerShe
 Em Linux/macOS, procura Git e pwsh no PATH; esses sistemas ainda não foram
 executados nesta auditoria.
 
+Os helpers e o launcher emitem UTF-8 explicitamente. Uma regressão simula
+páginas de código 437/850/1252/65001 e confere o conteúdo Unicode completo,
+incluindo acentos, setas e emoji, sem sanitizar ou reparar o JSON recebido.
+
 ## Cobertura
 
 | Área | Exercício real na sandbox |

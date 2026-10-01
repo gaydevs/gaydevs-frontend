@@ -111,7 +111,6 @@ export function sandbox(t, { specs = [], state = initialState() } = {}) {
       filter: source => !['feature.json', 'context'].includes(path.basename(source)) });
     cpSync(path.join(root, 'scripts/sdd'), path.join(repo, 'scripts/sdd'), { recursive: true });
     cpSync(path.join(root, '.gitignore'), path.join(repo, '.gitignore'));
-    cpSync(path.join(root, '.gitignore'), path.join(repo, '.gitignore'));
     const config = JSON.parse(readFileSync(path.join(root, '.github/sdd.json'), 'utf8'));
     config.projectNumber = 1; config.priorityFieldId = 99;
     mkdirSync(path.join(repo, '.github'));

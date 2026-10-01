@@ -1,6 +1,8 @@
 # Test-only launcher: real PowerShell and helpers, guarded command discovery.
 param([Parameter(Mandatory=$true)][string]$Request)
 $ErrorActionPreference = 'Stop'
+# Helpers and native Node wrappers communicate through UTF-8 pipes.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 if (-not $env:SDD_SANDBOX_BASE -or $env:GH_BIN -ne (Join-Path $env:SDD_SANDBOX_BASE 'fake-gh') -or $env:GIT_ALLOW_PROTOCOL -ne 'file') {
     throw 'SDD SANDBOX BLOCKED: mandatory fake/transport guard missing'
 }

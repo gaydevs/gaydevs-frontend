@@ -84,3 +84,10 @@ O harness local em `scripts/sdd/sandbox/` não altera os helpers upstream:
 executa os seis helpers instalados em fixtures descartáveis, com Git real,
 gh fake obrigatório e guards de rede. Detalhes, contratos exercitados e limites
 da comprovação estão em [sdd-sandbox.md](../docs/sdd-sandbox.md).
+
+Adaptação de encoding: `common.ps1` define stdout como UTF-8 sem BOM.
+Isso preserva o JSON e o texto Unicode quando o terminal Windows usa páginas
+OEM/ANSI: nas páginas 437/850, a seta do template era convertida em SUB (0x1A),
+invalidando o JSON; em 1252 havia perda silenciosa de caracteres. A sandbox
+também explicita UTF-8 no launcher. A regressão executa o helper real após
+selecionar 437, 850, 1252 e 65001 e exige igualdade integral do conteúdo.

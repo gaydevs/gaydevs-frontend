@@ -251,9 +251,26 @@ test('Spec Kit helpers: resolve-template selects real override stack and rejects
   const s = sandbox(t);
   const value = JSON.parse(ok(s.helper('resolve-template', ['constitution-template', '-Json'])));
   assert.equal(value.TEMPLATE_NAME, 'constitution-template');
-  assert.ok(value.TEMPLATE_CONTENT.length > 0);
+  assert.equal(value.TEMPLATE_CONTENT, readFileSync(path.join(s.repo, '.specify/templates/constitution-template.md'), 'utf8'));
   fail(s.helper('resolve-template', ['missing-sandbox-template', '-Json']), /Could not resolve/);
   fail(s.helper('resolve-template', []), /Template name is required/);
+});
+
+test('Spec Kit JSON: inherited OEM/ANSI code pages preserve Unicode template content exactly', t => {
+  const s = sandbox(t);
+  const helper = path.join(s.repo, '.specify/scripts/powershell/resolve-template.ps1').replaceAll("'", "''");
+  const expected = '# Fixture: aprovação → ação, 日本語, 😀\r\n"quotes"\tend\n';
+  writeFileSync(path.join(s.repo, '.specify/templates/overrides/constitution-template.md'), expected);
+  for (const codePage of [437, 850, 1252, 65001]) {
+    // Emulate the console encoding inherited when a gdev launches Node from
+    // a Windows terminal. Invoke the real helper after changing that encoding.
+    const raw = ok(s.probePowerShell(`[Console]::OutputEncoding = [Text.Encoding]::GetEncoding(${codePage})
+& '${helper}' constitution-template -Json`));
+    let value;
+    try { value = JSON.parse(raw); }
+    catch (error) { assert.fail(`Code page ${codePage}: ${error.message}; stdout=${JSON.stringify(raw)}`); }
+    assert.equal(value.TEMPLATE_CONTENT, expected, `Code page ${codePage} corrupted Unicode`);
+  }
 });
 
 test('Integrated flow: Issue → blockers → start → spec → explicit fixture decisions → plan → tasks → In Progress', t => {
